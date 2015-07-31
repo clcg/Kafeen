@@ -1,0 +1,68 @@
+---
+# TODO Convert all configurations from kafeen config file
+
+# Clinical labels
+clinical_labels:
+  unknown: "Unknown significance"
+  pathogenic: "Pathogenic"
+  nonpathogenic: "Benign"
+  pred_pathogenic: "Likely pathogenic"
+  pred_nonpathogenic: "Likely benign"
+
+# VCF annotation data files
+data_files:
+  gene_regions: "data/hg19_gene_and_mitochondrial_regions.txt"
+  clinvar: 
+    filename: "data/hg19_clinvar_20141202.vcf.gz"
+    fields:
+      - CLNSIG     # Clinical significance
+      - CLNREVSTAT # Clinical review status
+  dbsnp:
+    filename: "data/hg19_snp142_20141124.vcf.gz"
+    fields: !!null
+  dbnsfp:
+    filename: "data/hg19_dbnsfp2.1.vcf.gz"
+    fields:
+      - SIFT_score
+      - SIFT_pred
+      - Polyphen2_HDIV_score
+      - Polyphen2_HDIV_pred
+      - LRT_score
+      - LRT_pred
+      - MutationTaster_score
+      - MutationTaster_pred
+      - "GERP++_RS"
+      - phyloP
+  evs:
+    filename: "data/hg19_ESP6500SI-V2-SSA137.vcf.gz"
+    fields:
+      - EA_AC # European American allele counts in order of AltAlleles,RefAlleles
+      - AA_AC # African American allele counts in order of AltAlleles,RefAlleles
+      - TAC   # Total allele counts in order of AltAlleles,RefAlleles
+  exac:
+    filename: "data/hg19_ExAC_r0.3_20150316.vcf.gz"
+    fields:
+      - AC_AFR # African American alt allele counts
+      - AC_AMR # American alt allele counts
+      - AC_EAS # East Asian alt allele counts
+      - AC_FIN # European (Finnish) alt allele counts
+      - AC_NFE # European (Non-Finnish) alt allele counts
+      - AC_OTH # Other alt allele counts
+      - AC_SAS # South Asian alt allele counts
+      - AN_AFR # African American ref allele count
+      - AN_AMR # American ref allele count
+      - AN_EAS # East Asian ref allele count
+      - AN_FIN # European (Finnish) ref allele count
+      - AN_NFE # European (Non-Finnish) ref allele count
+      - AN_OTH # Other ref allele count
+      - AN_SAS # South Asian ref allele count
+  hgmd:
+    filename: "data/hg19_hgmd_2014r4.vcf.gz"
+    fields:
+      - VARIANTTYPE # Type of variant (DM - disease-causing)
+      - DISEASE     # Disease(s); comma-separated
+      - CONFIDENCE  # Pathogenicity confidence
+      - PMID        # PubMed ID(s); comma-separated
+  g1000:
+    filename: "data/hg19_1000Gp3_AMR_20141222.vcf.gz"
+    fields: !!null # TODO Fill this in... Combine 1000G VCFs first?
