@@ -10,7 +10,7 @@ clinical_labels:
   pred_nonpathogenic: "Likely benign"
 
 # Gene regions reference file
-gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.txt"
+gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
 
 # VCF annotation data files
 annotation_files:
