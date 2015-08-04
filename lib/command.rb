@@ -17,8 +17,8 @@ class Command
     f_regions = File.open(ref_file, 'r')
 
     # Set output file
-    out_file = "#{out_file_prefix}.gene_regions.txt"
-    f_out = File.open(out_file, 'w')
+    @genes2regions_result = "#{out_file_prefix}.gene_regions.bed"
+    f_out = File.open(@genes2regions_result, 'w')
     
     File.open(genes_file, 'r').each_line do |gene|
       gene.chomp!
@@ -35,7 +35,6 @@ class Command
     end
     f_regions.close
     f_out.close
-    @genes2regions_result = out_file
   end
 
   # Get a list of all variants within specified regions
@@ -90,20 +89,19 @@ class Command
     files_to_merge << tmp_vcfs['dbsnp']['filename']
 
     # Merge VCFs...
-    out_file = "#{out_file_prefix}.vcf.gz"
+    @regions2variants_result = "#{out_file_prefix}.vcf.gz"
     `bcftools merge \
        --merge all \
-       --output #{out_file} \
+       --output #{@regions2variants_result} \
        --output-type z \
        #{files_to_merge.join(' ')}`
 
     # Remove tmp files
-    if !keep_temp_files
+    if !keep_tmp_files
       tmp_vcfs.each do |key, tmp_vcf|
         File.unlink(tmp_vcf['filename']) if File.exist?(tmp_vcf['filename'])
+        File.unlink("#{tmp_vcf['filename']}.tbi") if File.exist?("#{tmp_vcf['filename']}.tbi")
       end
     end
-    
-    @regions2variants_result = out_file
   end
 end
