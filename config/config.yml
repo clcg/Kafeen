@@ -9,37 +9,45 @@ clinical_labels:
   pred_pathogenic: "Likely pathogenic"
   pred_nonpathogenic: "Likely benign"
 
+# Gene regions reference file
+gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.txt"
+
 # VCF annotation data files
-data_files:
-  gene_regions: "data/hg19_gene_and_mitochondrial_regions.txt"
+annotation_files:
   clinvar: 
+    source: "ClinVar"
     filename: "data/hg19_clinvar_20141202.vcf.gz"
     fields:
       - CLNSIG     # Clinical significance
       - CLNREVSTAT # Clinical review status
   dbsnp:
+    source: "dbSNP142"
     filename: "data/hg19_snp142_20141124.vcf.gz"
     fields: !!null
-  dbnsfp:
-    filename: "data/hg19_dbnsfp2.1.vcf.gz"
-    fields:
-      - SIFT_score
-      - SIFT_pred
-      - Polyphen2_HDIV_score
-      - Polyphen2_HDIV_pred
-      - LRT_score
-      - LRT_pred
-      - MutationTaster_score
-      - MutationTaster_pred
-      - "GERP++_RS"
-      - phyloP
+# TODO DO NOT take variants from dbNSFP2!!!
+#  dbnsfp:
+#    source: "dbNSFP2"
+#    filename: "data/hg19_dbnsfp2.1.vcf.gz"
+#    fields: !!null
+#      - SIFT_score
+#      - SIFT_pred
+#      - Polyphen2_HDIV_score
+#      - Polyphen2_HDIV_pred
+#      - LRT_score
+#      - LRT_pred
+#      - MutationTaster_score
+#      - MutationTaster_pred
+#      - "GERP++_RS"
+#      - phyloP
   evs:
+    source: "EVS6500"
     filename: "data/hg19_ESP6500SI-V2-SSA137.vcf.gz"
     fields:
       - EA_AC # European American allele counts in order of AltAlleles,RefAlleles
       - AA_AC # African American allele counts in order of AltAlleles,RefAlleles
       - TAC   # Total allele counts in order of AltAlleles,RefAlleles
   exac:
+    source: "ExAC"
     filename: "data/hg19_ExAC_r0.3_20150316.vcf.gz"
     fields:
       - AC_AFR # African American alt allele counts
@@ -57,6 +65,7 @@ data_files:
       - AN_OTH # Other ref allele count
       - AN_SAS # South Asian ref allele count
   hgmd:
+    source: "HGMD"
     filename: "data/hg19_hgmd_2014r4.vcf.gz"
     fields:
       - VARIANTTYPE # Type of variant (DM - disease-causing)
@@ -64,5 +73,6 @@ data_files:
       - CONFIDENCE  # Pathogenicity confidence
       - PMID        # PubMed ID(s); comma-separated
   g1000:
+    source: "1000Genomes"
     filename: "data/hg19_1000Gp3_AMR_20141222.vcf.gz"
     fields: !!null # TODO Fill this in... Combine 1000G VCFs first?
