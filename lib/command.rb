@@ -41,9 +41,9 @@ class Command
   #
   # Input file format (tab-separated):
   #   chr  pos_start  pos_end  gene
-  def regions2variants(regions_file:, vcf_files:, out_file_prefix:, keep_tmp_files: false)
+  def regions2variants(bed_file:, vcf_files:, out_file_prefix:, keep_tmp_files: false)
     tmp_vcfs = {}
-    File.open(regions_file).each do |region|
+    File.open(bed_file).each do |region|
       chr,pos_start,pos_end,gene = region.chomp.split("\t")
       chr.sub!('chr', '')
 
@@ -61,7 +61,7 @@ class Command
         # Query...
         `bcftools annotate \
            --remove '#{fields}' \
-           --regions-file '#{regions_file}' \
+           --regions-file '#{bed_file}' \
            #{vcf['filename']} | \
          bcftools filter \
            --exclude 'ALT !~ "^[actgACGT,]*$"' \
@@ -73,8 +73,6 @@ class Command
 
         # Store tmp file name (filename) and the original VCF that the data came from (parent)
         tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
-        ## Store all tmp file names
-        #tmp_vcfs << tmp_source_vcf
       end
     end
 

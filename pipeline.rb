@@ -11,7 +11,7 @@ comm = Command.new
 comm.genes2regions(genes_file: F_IN, ref_file: CONFIG['gene_regions_ref_file'], out_file_prefix: FILE_PREFIX)
 
 # TODO Get variants from gene regions
-comm.regions2variants(regions_file: comm.genes2regions_result, vcf_files: CONFIG['annotation_files'], out_file_prefix: FILE_PREFIX)
+comm.regions2variants(bed_file: comm.genes2regions_result, vcf_files: CONFIG['annotation_files'], out_file_prefix: FILE_PREFIX)
                    
 # TODO Add expert-curated variants that are
 #      missing in the original list of variants
