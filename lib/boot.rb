@@ -18,7 +18,7 @@ require 'yaml'
 CONFIG = YAML.load_file(File.join('config', 'config.yml'))
 
 # Verify required utilities are in $PATH
-utils = ['bcftools']
+utils = ['bcftools', 'tabix', 'bgzip']
 utils.each do |util|
   if `which #{util} 2> /dev/null`.empty?
     puts "ERROR: #{util} is not in your $PATH, which is required to run this tool"

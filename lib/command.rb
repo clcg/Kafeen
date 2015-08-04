@@ -4,12 +4,15 @@
 class Command
   attr_reader :genes2regions_result
   attr_reader :regions2variants_result
+  attr_reader :addgenes_result
 
+  ##
   # Input columns:
   #   gene_symbol
   #
   # Example usage:
   #   ruby get_gene_regions.rb mygenes.txt > myregions.txt
+  ##
   def genes2regions(genes_file:, ref_file:, out_file_prefix:)
     # Gene region reference file
     # Reference columns:
@@ -37,10 +40,12 @@ class Command
     f_out.close
   end
 
+  ##
   # Get a list of all variants within specified regions
   #
   # Input file format (tab-separated):
   #   chr  pos_start  pos_end  gene
+  ##
   def regions2variants(bed_file:, vcf_files:, out_file_prefix:, keep_tmp_files: false)
     tmp_vcfs = {}
     File.open(bed_file).each do |region|
@@ -101,5 +106,34 @@ class Command
         File.unlink("#{tmp_vcf['filename']}.tbi") if File.exist?("#{tmp_vcf['filename']}.tbi")
       end
     end
+  end
+
+  ##
+  # Take genes from BED file and add to VCF file
+  ##
+  def addgenes(bed_file:, vcf_file:, out_file_prefix:)
+    # Prepare header file
+    header_file = "#{out_file_prefix}.header.tmp.txt"
+    header_line = '##INFO=<ID=GENE,Number=1,Type=String,Description="HGNC gene symbol">'
+    File.open(header_file, 'w') {|f| f.write(header_line) }
+
+    # Prepare BED file using bgzip and tabix
+    `bgzip -c #{bed_file} > #{bed_file}.tmp.gz`
+    `tabix -p bed #{bed_file}.tmp.gz`
+
+    # Add genes to VCF file
+    @addgenes_result = "#{out_file_prefix}.vcf.gz"
+    `bcftools annotate \
+       --annotations #{bed_file}.tmp.gz \
+       --columns CHROM,FROM,TO,GENE \
+       --header-lines #{header_file} \
+       --output #{@addgenes_result} \
+       --output-type z \
+       #{vcf_file}`
+
+    # Remove tmp files
+    File.unlink(header_file) if File.exist?(header_file)
+    File.unlink("#{bed_file}.tmp.gz") if File.exist?("#{bed_file}.tmp.gz")
+    File.unlink("#{bed_file}.tmp.gz.tbi") if File.exist?("#{bed_file}.tmp.gz.tbi")
   end
 end
