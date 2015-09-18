@@ -6,7 +6,7 @@ clinical_labels:
   unknown: "Unknown significance"
   pathogenic: "Pathogenic"
   nonpathogenic: "Benign"
-  pred_pathogenic: "Likely pathogenic"
+  pred_pathogenic: "Unknown significance"
   pred_nonpathogenic: "Likely benign"
 
 # Gene regions reference file
@@ -16,57 +16,71 @@ gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
 annotation_files:
   clinvar: 
     source: "ClinVar"
-    filename: "data/hg19_clinvar_20141202.vcf.gz"
+    filename: "data/hg19_ClinVar_20150804.vcf.gz"
     fields:
       - CLNSIG     # Clinical significance
       - CLNREVSTAT # Clinical review status
   dbsnp:
     source: "dbSNP142"
-    filename: "data/hg19_snp142_20141124.vcf.gz"
+    filename: "data/hg19_SNP142.vcf.gz"
     fields: !!null
-# TODO DO NOT take variants from dbNSFP2!!!
-#  dbnsfp:
-#    source: "dbNSFP2"
-#    filename: "data/hg19_dbnsfp2.1.vcf.gz"
-#    fields: !!null
-#      - SIFT_score
-#      - SIFT_pred
-#      - Polyphen2_HDIV_score
-#      - Polyphen2_HDIV_pred
-#      - LRT_score
-#      - LRT_pred
-#      - MutationTaster_score
-#      - MutationTaster_pred
-#      - "GERP++_RS"
-#      - phyloP
-  evs:
-    source: "EVS6500"
-    filename: "data/hg19_ESP6500SI-V2-SSA137.vcf.gz"
+  dbnsfp:
+    source: "dbNSFP3.0"
+    filename: "data/hg19_dbNSFP3.0.MORL.vcf.gz"
+#    source: "dbNSFP2.1"
+#    filename: "data/hg19_dbNSFP2.1.MORL.vcf.gz"
     fields:
-      - EA_AC # European American allele counts in order of AltAlleles,RefAlleles
-      - AA_AC # African American allele counts in order of AltAlleles,RefAlleles
-      - TAC   # Total allele counts in order of AltAlleles,RefAlleles
+      - SIFT_SCORE
+      - SIFT_PRED
+      - POLYPHEN2_HDIV_SCORE
+      - POLYPHEN2_HDIV_PRED
+      - LRT_SCORE
+      - LRT_PRED
+      - MUTATIONTASTER_SCORE
+      - MUTATIONTASTER_PRED
+      - "GERP++_RS"
+      - PHYLOP
+  evs:
+    source: "EVS6500SIv2"
+    filename: "data/hg19_ESP6500SIv2.MORL.vcf.gz"
+    fields:
+      - EVS_EA_AC  # European American alt allele counts
+      - EVS_EA_AN  # European American allele counts
+      - EVS_EA_AF  # European American allele frequency
+      - EVS_AA_AC  # African American alt allele counts
+      - EVS_AA_AN  # African American allele counts
+      - EVS_AA_AF  # African American allele frequency
+      - EVS_ALL_AC # Total alt allele counts
+      - EVS_ALL_AN # Total allele counts
+      - EVS_ALL_AF # Total allele frequency
   exac:
     source: "ExAC"
-    filename: "data/hg19_ExAC_r0.3_20150316.vcf.gz"
+    filename: "data/hg19_ExAC_r0.3.MORL.vcf.gz"
     fields:
-      - AC_AFR # African American alt allele counts
-      - AC_AMR # American alt allele counts
-      - AC_EAS # East Asian alt allele counts
-      - AC_FIN # European (Finnish) alt allele counts
-      - AC_NFE # European (Non-Finnish) alt allele counts
-      - AC_OTH # Other alt allele counts
-      - AC_SAS # South Asian alt allele counts
-      - AN_AFR # African American ref allele count
-      - AN_AMR # American ref allele count
-      - AN_EAS # East Asian ref allele count
-      - AN_FIN # European (Finnish) ref allele count
-      - AN_NFE # European (Non-Finnish) ref allele count
-      - AN_OTH # Other ref allele count
-      - AN_SAS # South Asian ref allele count
+      - ExAC_AFR_AC # African American alt allele counts
+      - ExAC_AFR_AN # African American ref allele count
+      - ExAC_AFR_AF # African American allele frequency
+      - ExAC_AMR_AC # American alt allele counts
+      - ExAC_AMR_AN # American ref allele count
+      - ExAC_AMR_AF # American allele frequency
+      - ExAC_EAS_AC # East Asian alt allele counts
+      - ExAC_EAS_AN # East Asian ref allele count
+      - ExAC_EAS_AF # East Asian allele frequency
+      - ExAC_FIN_AC # European (Finnish) alt allele counts
+      - ExAC_FIN_AN # European (Finnish) ref allele count
+      - ExAC_FIN_AF # European (Finnish) allele frequency
+      - ExAC_NFE_AC # European (Non-Finnish) alt allele counts
+      - ExAC_NFE_AN # European (Non-Finnish) ref allele count
+      - ExAC_NFE_AF # European (Non-Finnish) allele frequency
+      - ExAC_OTH_AC # Other alt allele counts
+      - ExAC_OTH_AN # Other ref allele count
+      - ExAC_OTH_AF # Other allele frequency
+      - ExAC_SAS_AC # South Asian alt allele counts
+      - ExAC_SAS_AN # South Asian ref allele count
+      - ExAC_SAS_AF # South Asian allele frequency
   hgmd:
     source: "HGMD"
-    filename: "data/hg19_hgmd_2014r4.vcf.gz"
+    filename: "data/hg19_HGMD_2014r4.MORL.vcf.gz"
     fields:
       - VARIANTTYPE # Type of variant (DM - disease-causing)
       - DISEASE     # Disease(s); comma-separated
@@ -74,5 +88,23 @@ annotation_files:
       - PMID        # PubMed ID(s); comma-separated
   g1000:
     source: "1000Genomes"
-    filename: "data/hg19_1000Gp3_AMR_20141222.vcf.gz"
-    fields: !!null # TODO Fill this in... Combine 1000G VCFs first?
+    filename: "data/hg19_1000Gp3_Oct2014.MORL.vcf.gz"
+    fields:
+      - '1KG_AFR_AC' # African American alt allele counts
+      - '1KG_AFR_AN' # African American ref allele count
+      - '1KG_AFR_AF' # African American allele frequency
+      - '1KG_AMR_AC' # American alt allele counts
+      - '1KG_AMR_AN' # American ref allele count
+      - '1KG_AMR_AF' # American allele frequency
+      - '1KG_EAS_AC' # East Asian alt allele counts
+      - '1KG_EAS_AN' # East Asian ref allele count
+      - '1KG_EAS_AF' # East Asian allele frequency
+      - '1KG_EUR_AC' # European alt allele counts
+      - '1KG_EUR_AN' # European ref allele count
+      - '1KG_EUR_AF' # European allele frequency
+      - '1KG_SAS_AC' # South Asian alt allele counts
+      - '1KG_SAS_AN' # South Asian ref allele count
+      - '1KG_SAS_AF' # South Asian allele frequency
+      - '1KG_ALL_AC' # Total alt allele counts
+      - '1KG_ALL_AN' # Total allele count
+      - '1KG_ALL_AF' # Total allele frequency
