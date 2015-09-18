@@ -47,6 +47,7 @@ class Command
     end
     f_regions.close
     f_out.close
+    @@log.info("Gene regions written to #{@genes2regions_result}")
   end
 
   ##
@@ -159,8 +160,10 @@ class Command
        --output #{@addgenes_result} \
        --output-type z \
        #{vcf_file}`
+    @@log.info("Genes added to #{@addgenes_result}")
 
     # Remove tmp files
+    @@log.info("Removing all temp files...")
     File.unlink(header_file) if File.exist?(header_file)
     File.unlink("#{bed_file}.tmp.gz") if File.exist?("#{bed_file}.tmp.gz")
     File.unlink("#{bed_file}.tmp.gz.tbi") if File.exist?("#{bed_file}.tmp.gz.tbi")
@@ -169,7 +172,7 @@ class Command
   ##
   # Add predictions from dbNSFP
   ##
-  def addpredictions(dbnsfp_file, vcf_file:,  out_file_prefix:)
+  def addpredictions(dbnsfp_file:, vcf_file:,  out_file_prefix:)
     # TODO Add dbNSFP predictions
     @addpredictions_result = "#{out_file_prefix}.vcf.gz"
     tmp_file = "#{out_file_prefix}.vcf"
@@ -204,6 +207,6 @@ class Command
 
     # TODO Add *nominal* predictions for convervation scores (GERP++ and phyloP)
     # TODO Add final prediction
-
+    @@log.info("Predictions added to #{@addpredictions_result}")
   end
 end
