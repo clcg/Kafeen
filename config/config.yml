@@ -26,7 +26,7 @@ annotation_files:
     fields: !!null
   dbnsfp:
     source: "dbNSFP3.0"
-    filename: "data/hg19_dbNSFP3.0.MORL.vcf.gz"
+    filename: "data/hg19_dbNSFP3.0.MORL.bcf.gz"
 #    source: "dbNSFP2.1"
 #    filename: "data/hg19_dbNSFP2.1.MORL.vcf.gz"
     fields:
@@ -39,7 +39,8 @@ annotation_files:
       - MUTATIONTASTER_SCORE
       - MUTATIONTASTER_PRED
       - "GERP++_RS"
-      - PHYLOP
+      - PHYLOP20WAY_MAMMALIAN
+      - PHYLOP20WAY_MAMMALIAN
   evs:
     source: "EVS6500SIv2"
     filename: "data/hg19_ESP6500SIv2.MORL.vcf.gz"
