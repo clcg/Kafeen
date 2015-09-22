@@ -16,11 +16,7 @@ class Command
   @@log.level = Logger::INFO
 
   ##
-  # Input columns:
-  #   gene_symbol
-  #
-  # Example usage:
-  #   ruby get_gene_regions.rb mygenes.txt > myregions.txt
+  # Genes 2 Regions
   ##
   def genes2regions(genes_file:, ref_file:, out_file_prefix:)
     # Gene region reference file
@@ -123,18 +119,26 @@ class Command
 
     # Merge VCFs...
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
+    @@log.info("Merging results...")
     `bcftools merge \
        --merge all \
        --output #{@regions2variants_result} \
        --output-type z \
        #{files_to_merge.join(' ')}`
+    @@log.info("Done merging results")
+
+    @@log.info("Creating new index file for #{@regions2variants_result}...")
+    `bcftools index --force --tbi #{@regions2variants_result}`
+    @@log.info("Done creating index file")
 
     # Remove tmp files
     if !keep_tmp_files
+      @@log.info("Removing temp files...")
       tmp_vcfs.each do |key, tmp_vcf|
         File.unlink(tmp_vcf['filename']) if File.exist?(tmp_vcf['filename'])
         File.unlink("#{tmp_vcf['filename']}.tbi") if File.exist?("#{tmp_vcf['filename']}.tbi")
       end
+      @@log.info("Done removing temp files")
     end
   end
 
@@ -149,21 +153,31 @@ class Command
 
     # Prepare BED file using bgzip and tabix
     `bgzip -c #{bed_file} > #{bed_file}.tmp.gz`
-    `tabix -p bed #{bed_file}.tmp.gz`
+    `tabix -fp bed #{bed_file}.tmp.gz`
 
     # Add genes to VCF file
-    @addgenes_result = "#{out_file_prefix}.vcf.gz"
+    tmp_vcf = "#{out_file_prefix}.tmp.vcf.gz"
+    @@log.info("Adding gene annotations to #{tmp_vcf}")
     `bcftools annotate \
        --annotations #{bed_file}.tmp.gz \
        --columns CHROM,FROM,TO,GENE \
        --header-lines #{header_file} \
-       --output #{@addgenes_result} \
+       --output #{tmp_vcf} \
        --output-type z \
        #{vcf_file}`
-    @@log.info("Genes added to #{@addgenes_result}")
+    @@log.info("Genes added to #{tmp_vcf}")
+
+    # Move tmp output to be the new output file
+    @addgenes_result = "#{out_file_prefix}.vcf.gz"
+    @@log.info("Moving output to #{@addgenes_result}...")
+    File.rename(tmp_vcf, @addgenes_result)
+
+    # Create index
+    @@log.info("Creating index for #{@addgenes_result}...")
+    `bcftools index --force --tbi #{@addgenes_result}`
 
     # Remove tmp files
-    @@log.info("Removing all temp files...")
+    @@log.info("Removing all tmp files...")
     File.unlink(header_file) if File.exist?(header_file)
     File.unlink("#{bed_file}.tmp.gz") if File.exist?("#{bed_file}.tmp.gz")
     File.unlink("#{bed_file}.tmp.gz.tbi") if File.exist?("#{bed_file}.tmp.gz.tbi")
@@ -174,11 +188,31 @@ class Command
   ##
   def addpredictions(dbnsfp_file:, vcf_file:,  out_file_prefix:)
     # TODO Add dbNSFP predictions
-    @addpredictions_result = "#{out_file_prefix}.vcf.gz"
-    tmp_file = "#{out_file_prefix}.vcf"
+    @addpredictions_result = "#{out_file_prefix}.bcf.gz"
+    tmp_file = "#{out_file_prefix}.bcf"
+#    @@log.info("Annotating with dbNSFP...")
+# TODO Why does this stop at line 840???!!!
+@addpredictions_result = "predictions.vcf.gz"
+@@log.info("Annotating with dbNSFP (writing to #{@addpredictions_result})...")
+cmd = "bcftools annotate\n" +
+      "  --annotations #{dbnsfp_file['filename']}\n" +
+      "  --columns " + dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',') + "\n" +
+      "  --output #{@addpredictions_result}\n" +
+      "  --output-type z\n" +
+      "  #{vcf_file}"
+puts "CMD:\n #{cmd}"
+    # TODO Put back columns!
+    #--columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
+`bcftools annotate \
+    --annotations #{dbnsfp_file['filename']} \
+    --columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
+    --output #{@addpredictions_result} \
+    --output-type z \
+    #{vcf_file}`
+exit
     `bcftools annotate \
        --annotations #{dbnsfp_file['filename']} \
-       --columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')}
+       --columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
        --output #{@addpredictions_result} \
        --output-type v \
        #{vcf_file}`
