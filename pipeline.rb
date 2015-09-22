@@ -28,6 +28,6 @@ cmd.addgenes(bed_file: cmd.genes2regions_result,
 #                 out_file_prefix: FILE_PREFIX)
 
 # TODO Annotate with dbNSFP
-#puts "Annotating with dbNSFP..."
-#cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
-#                   out_file_prefix: FILE_PREFIX)
+cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
+                   vcf_file: cmd.addgenes_result,
+                   out_file_prefix: FILE_PREFIX)
