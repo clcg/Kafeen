@@ -156,25 +156,26 @@ class Command
     `tabix -fp bed #{bed_file}.tmp.gz`
 
     # Add genes to VCF file
-    tmp_vcf = "#{out_file_prefix}.tmp.vcf.gz"
-    @@log.info("Adding gene annotations to #{tmp_vcf}")
+    tmp_output = "#{out_file_prefix}.tmp.vcf.gz"
+    @@log.info("Adding gene annotations to #{tmp_output}")
     `bcftools annotate \
        --annotations #{bed_file}.tmp.gz \
        --columns CHROM,FROM,TO,GENE \
        --header-lines #{header_file} \
-       --output #{tmp_vcf} \
+       --output #{tmp_output} \
        --output-type z \
        #{vcf_file}`
-    @@log.info("Genes added to #{tmp_vcf}")
+    @@log.info("Genes added to #{tmp_output}")
 
     # Move tmp output to be the new output file
     @addgenes_result = "#{out_file_prefix}.vcf.gz"
     @@log.info("Moving output to #{@addgenes_result}...")
-    File.rename(tmp_vcf, @addgenes_result)
+    File.rename(tmp_output, @addgenes_result)
 
     # Create index
     @@log.info("Creating index for #{@addgenes_result}...")
     `bcftools index --force --tbi #{@addgenes_result}`
+    @@log.info("Done creating index file")
 
     # Remove tmp files
     @@log.info("Removing all tmp files...")
@@ -186,35 +187,30 @@ class Command
   ##
   # Add predictions from dbNSFP
   ##
-  def addpredictions(dbnsfp_file:, vcf_file:,  out_file_prefix:)
+  def addpredictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:)
+    # Get only regions of interest from dbNSFP
+    @@log.info("Subsetting dbNSFP for faster annotation...")
+    dbnsfp_subset_file = "#{out_file_prefix}.dbNSFP_subset.tmp.bcf.gz"
+    `bcftools view \
+       --regions-file #{bed_file} \
+       --output-type b \
+       --output-file #{dbnsfp_subset_file} \
+       #{dbnsfp_file['filename']}`
+    @@log.info("dbNSFP subset written to #{dbnsfp_subset_file}")
+    
+    # Create index
+    @@log.info("Creating index file for #{dbnsfp_subset_file}...")
+    `bcftools index --force --csi #{dbnsfp_subset_file}`
+    @@log.info("Done creating index file")
+
     # TODO Add dbNSFP predictions
-    @addpredictions_result = "#{out_file_prefix}.bcf.gz"
-    tmp_file = "#{out_file_prefix}.bcf"
-#    @@log.info("Annotating with dbNSFP...")
-# TODO Why does this stop at line 840???!!!
-@addpredictions_result = "predictions.vcf.gz"
-@@log.info("Annotating with dbNSFP (writing to #{@addpredictions_result})...")
-cmd = "bcftools annotate\n" +
-      "  --annotations #{dbnsfp_file['filename']}\n" +
-      "  --columns " + dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',') + "\n" +
-      "  --output #{@addpredictions_result}\n" +
-      "  --output-type z\n" +
-      "  #{vcf_file}"
-puts "CMD:\n #{cmd}"
-    # TODO Put back columns!
-    #--columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
-`bcftools annotate \
-    --annotations #{dbnsfp_file['filename']} \
-    --columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
-    --output #{@addpredictions_result} \
-    --output-type z \
-    #{vcf_file}`
-exit
+    tmp_output = "#{out_file_prefix}.tmp.vcf.gz"
+    @@log.info("Adding dbNSFP pedictions to #{tmp_output}...")
     `bcftools annotate \
-       --annotations #{dbnsfp_file['filename']} \
+       --annotations #{dbnsfp_subset_file} \
        --columns #{dbnsfp_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
-       --output #{@addpredictions_result} \
-       --output-type v \
+       --output #{tmp_output} \
+       --output-type z \
        #{vcf_file}`
 #       .each_line do |vcf_row|
 #         if vcf_row.match(/^#/)
@@ -241,6 +237,8 @@ exit
 
     # TODO Add *nominal* predictions for convervation scores (GERP++ and phyloP)
     # TODO Add final prediction
-    @@log.info("Predictions added to #{@addpredictions_result}")
+
+    #@addpredictions_result = "#{out_file_prefix}.vcf.gz"
+    #@@log.info("Predictions added to #{@addpredictions_result}")
   end
 end
