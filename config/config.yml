@@ -1,13 +1,15 @@
 ---
-# TODO Convert all configurations from kafeen config file
+##
+# Configurations
+##
 
 # Clinical labels
 clinical_labels:
   unknown: "Unknown significance"
   pathogenic: "Pathogenic"
-  nonpathogenic: "Benign"
   pred_pathogenic: "Unknown significance"
-  pred_nonpathogenic: "Likely benign"
+  benign: "Benign"
+  pred_benign: "Likely benign"
 
 # Gene regions reference file
 gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
@@ -39,7 +41,6 @@ annotation_files:
       - MUTATIONTASTER_SCORE
       - MUTATIONTASTER_PRED
       - "GERP++_RS"
-      - PHYLOP20WAY_MAMMALIAN
       - PHYLOP20WAY_MAMMALIAN
   evs:
     source: "EVS6500SIv2"

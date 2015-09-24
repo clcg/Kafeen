@@ -27,8 +27,9 @@ cmd.addgenes(bed_file: cmd.genes2regions_result,
 #cmd.addvariants(vcf_file: CONFIG['annotation_files']['expert_curations'],
 #                 out_file_prefix: FILE_PREFIX)
 
-# TODO Annotate with dbNSFP
+# Annotate with dbNSFP
 cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                    vcf_file: cmd.addgenes_result,
                    bed_file: cmd.genes2regions_result,
-                   out_file_prefix: FILE_PREFIX)
+                   out_file_prefix: FILE_PREFIX,
+                   clinical_labels: CONFIG['clinical_labels'])
