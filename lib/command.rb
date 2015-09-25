@@ -92,6 +92,9 @@ class Command
         if vcf['fields'].nil?
           # Remove all INFO tags
           fields = 'INFO'
+        elsif vcf['fields'] == '*'
+          # Keep all INFO tags
+          fields = '*'
         else
           # Keep only the following INFO tags (indicated by ^)
           fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
@@ -99,15 +102,26 @@ class Command
 
         # Query...
         @@log.info("Querying #{vcf['source']}...")
-        stdout, stderr = Open3.capture3(
-          "bcftools annotate \
-             --remove '#{fields}' \
-             --regions-file '#{bed_file}' \
-             --exclude 'TYPE=\"other\"' \
-             --output #{tmp_source_vcf} \
-             --output-type z \
-             #{vcf['filename']}"
-        )
+        if fields == '*'
+          stdout, stderr = Open3.capture3(
+            "bcftools annotate \
+               --regions-file '#{bed_file}' \
+               --exclude 'TYPE=\"other\"' \
+               --output #{tmp_source_vcf} \
+               --output-type z \
+               #{vcf['filename']}"
+          )
+        else
+          stdout, stderr = Open3.capture3(
+            "bcftools annotate \
+               --remove '#{fields}' \
+               --regions-file '#{bed_file}' \
+               --exclude 'TYPE=\"other\"' \
+               --output #{tmp_source_vcf} \
+               --output-type z \
+               #{vcf['filename']}"
+          )
+        end
 
         # Did bcftools return an error?
         # Try again and don't remove any INFO tags this time

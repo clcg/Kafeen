@@ -22,14 +22,13 @@ cmd.addgenes(bed_file: cmd.genes2regions_result,
              vcf_file: cmd.regions2variants_result,
              out_file_prefix: FILE_PREFIX)
 
-## TODO Add expert-curated variants that are
-##      missing in the original list of variants
-#cmd.addvariants(vcf_file: CONFIG['annotation_files']['expert_curations'],
-#                 out_file_prefix: FILE_PREFIX)
-
 # Annotate with dbNSFP
 cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                    vcf_file: cmd.addgenes_result,
                    bed_file: cmd.genes2regions_result,
                    out_file_prefix: FILE_PREFIX,
                    clinical_labels: CONFIG['clinical_labels'])
+
+# TODO Add HGVS notation
+
+# TODO Add final pathogenicity
