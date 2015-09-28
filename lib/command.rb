@@ -12,6 +12,7 @@ class Command
   attr_reader :regions2variants_result
   attr_reader :addgenes_result
   attr_reader :addpredictions_result
+  attr_reader :finalize_pathogenicity_result
 
   ##
   # Initialize
@@ -23,6 +24,9 @@ class Command
     @num_path_preds_tag = "NUM_PATH_PREDS"
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
+    @final_pathogenicity_tag = "FINAL_PATHOGENICITY"
+    @final_pathogenicity_source_tag = "FINAL_PATHOGENICITY_SOURCE"
+    @final_pathogenicity_reason_tag = "FINAL_PATHOGENICITY_REASON"
 
     # Set logger
     @@log = Logger.new(log_out)
@@ -285,7 +289,7 @@ class Command
            num_path_preds = 0
            dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^GERP\+\+_RS$|^PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
              # Get all predictions for this algorithm
-             match = vcf_row.match(/[\t;]#{Regexp.escape(field)}=([^;\t]*)/)
+             match = vcf_row.match(/(?:^|[\t;])#{Regexp.escape(field)}=([^;\t]*)/)
 
              # No data for this algorithm -- skip it
              next if match.nil?
@@ -386,6 +390,76 @@ class Command
     @@log.info("Removing tmp files...")
     File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
     File.unlink(dbnsfp_subset_file) if File.exist?(dbnsfp_subset_file)
+    @@log.info("Done removing tmp files")
+  end
+
+  ##
+  # Finalize Pathogenicity
+  ##
+  def finalize_pathogenicity(vcf_file:, out_file_prefix:, clinical_labels:)
+    tmp_output_file = "#{out_file_prefix}.tmp.vcf"
+    f_tmp_output_file = File.open(tmp_output_file, 'w')
+    @@log.info("Finalizing pathogenicity... #{tmp_output_file}...")
+    `bcftools view \
+       --output-type v \
+       #{vcf_file}`.each_line do |vcf_row|
+         vcf_row.chomp!
+         if vcf_row.match(/^##/)
+           # Print meta-info
+           f_tmp_output_file.puts vcf_row
+         elsif vcf_row.match(/^#[^#]/)
+           # Add final pathogneicity tag to meta-info
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_tag},Number=.,Type=String,Description=\"Final curated pathogenicity\">"
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_source_tag},Number=.,Type=String,Description=\"Source for final pathogenicity\">"
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_reason_tag},Number=.,Type=String,Description=\"Reason for final pathogenicity\">"
+
+           # Print header
+           f_tmp_output_file.puts vcf_row
+         else
+           vcf_cols = vcf_row.split("\t")
+           # TODO Finalize here
+           if (match = vcf_cols[7].match(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)).nil?
+             # Check for curated pathogenicity
+             final_pathogenicity = match[1]
+           elsif vcf_cols[7].scan(/[^;\t]*_AF=([^;\t]*)/).flatten.any? { |af| af.to_f >= 0.005 } == true
+             # Check max MAF
+             final_pathogenicity = URI.escape(clinical_labels['benign'])
+             final_pathogenicity_source = "MAF"
+             final_pathogenicity_reason = "MAF>=0.005"
+           elsif false
+             # TODO Check for HGMD / ClinVar
+           else
+             # TODO Unknown significance
+             final_pathogenicity = URI.escape(clinical_labels['unknown'])
+             final_pathogenicity_source = "."
+             final_pathogenicity_reason = URI.escape("Not enough information")
+           end
+         end
+       end
+
+    f_tmp_output_file.close
+
+    @@log.info("Predictions added to #{tmp_output_file}")
+
+    @finalize_pathogenicity_result = "#{out_file_prefix}.vcf.gz}"
+    @@log.info("Compressing #{tmp_output_file}")
+    # Compress the output file
+    `bcftools view \
+       --output-type z \
+       --output-file #{@finalize_pathogenicity_result} \
+       #{tmp_output_file}`
+    @@log.info("Compressed output written to #{@finalize_pathogenicity_result}...")
+
+    # Index output file
+    @@log.info("Indexing #{@finalize_pathogenicity_result}...")
+    `bcftools index  \
+       --force \
+       --tbi \
+       #{@finalize_pathogenicity_result}`
+    @@log.info("Done creating index file")
+
+    @@log.info("Removing tmp files...")
+    File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
     @@log.info("Done removing tmp files")
   end
 end
