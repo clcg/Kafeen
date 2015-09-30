@@ -7,8 +7,10 @@
 clinical_labels:
   unknown: "Unknown significance"
   pathogenic: "Pathogenic"
+  likely_pathogenic: "Likely pathogenic"
   pred_pathogenic: "Unknown significance"
   benign: "Benign"
+  likely_benign: "Likely benign"
   pred_benign: "Likely benign"
 
 # Gene regions reference file
@@ -21,6 +23,7 @@ annotation_files:
     filename: "data/hg19_ClinVar_20150804.vcf.gz"
     fields:
       - CLNSIG     # Clinical significance
+      - CLNDBN     # Clinical disease name
       - CLNREVSTAT # Clinical review status
   dbsnp:
     source: "dbSNP142"
@@ -42,7 +45,7 @@ annotation_files:
       - PHYLOP20WAY_MAMMALIAN
   morl:
     source: "MORL"
-    filename: "data/hg19_DVD_ExpertCurations_2015-09-24.MORL.vcf.gz"
+    filename: "data/hg19_DVD_ExpertCurations_2015-09-28.MORL.vcf.gz"
     fields: "*" # Include all fields
   evs:
     source: "EVS6500SIv2"
