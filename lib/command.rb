@@ -25,8 +25,10 @@ class Command
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
     @final_pathogenicity_tag = "FINAL_PATHOGENICITY"
+    @final_pathogenicity_comments_tag = "FINAL_NOTES"
     @final_pathogenicity_source_tag = "FINAL_PATHOGENICITY_SOURCE"
     @final_pathogenicity_reason_tag = "FINAL_PATHOGENICITY_REASON"
+    @final_disease_tag = "FINAL_DISEASE"
 
     # Set logger
     @@log = Logger.new(log_out)
@@ -106,39 +108,38 @@ class Command
 
         # Query...
         @@log.info("Querying #{vcf['source']}...")
-        if fields == '*'
-          stdout, stderr = Open3.capture3(
-            "bcftools annotate \
-               --regions-file '#{bed_file}' \
-               --exclude 'TYPE=\"other\"' \
-               --output #{tmp_source_vcf} \
-               --output-type z \
-               #{vcf['filename']}"
-          )
-        else
+        if fields != '*'
           stdout, stderr = Open3.capture3(
             "bcftools annotate \
                --remove '#{fields}' \
                --regions-file '#{bed_file}' \
                --exclude 'TYPE=\"other\"' \
-               --output #{tmp_source_vcf} \
-               --output-type z \
-               #{vcf['filename']}"
+               #{vcf['filename']} \
+             | bcftools norm \
+                 --multiallelics '-' \
+                 --output-type z \
+                 --output #{tmp_source_vcf}"
           )
+          stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
+          if !stderr.empty?
+            @@log.warn("bcftools returned an error for #{vcf['source']}. Trying another query method...")
+          end
         end
 
         # Did bcftools return an error?
         # Try again and don't remove any INFO tags this time
-        if !stderr.empty?
-          @@log.warn("bcftools returned an error for #{vcf['source']}. Trying another query method...")
+        if fields == '*' || !stderr.empty?
           stdout, stderr = Open3.capture3(
-            "bcftools annotate \
+            "bcftools view \
                --regions-file '#{bed_file}' \
                --exclude 'TYPE=\"other\"' \
-               --output #{tmp_source_vcf} \
-               --output-type z \
-               #{vcf['filename']}"
+               #{vcf['filename']} \
+             | bcftools norm \
+                 --multiallelics '-' \
+                 --output-type z \
+                 --output #{tmp_source_vcf}"
           )
+          stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
         end
 
         # Index the results file...
@@ -146,7 +147,7 @@ class Command
           # ERROR
           @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
         else
-          # SUCCESS -- now create index file
+          # SUCCESS -- create index file
           @@log.info("Successfully queried #{vcf['source']}")
           @@log.info("Creating index file for #{vcf['source']}...")
           `bcftools index --force --tbi #{tmp_source_vcf}`
@@ -399,6 +400,47 @@ class Command
   def finalize_pathogenicity(vcf_file:, out_file_prefix:, clinical_labels:)
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
     f_tmp_output_file = File.open(tmp_output_file, 'w')
+
+    # Set ClinVar pathogenicity dictionary
+    clinvar_pathogenicity_map = {
+      '2' => clinical_labels['benign'],
+      '3' => clinical_labels['likely_benign'],
+      '4' => clinical_labels['likely_pathogenic'],
+      '5' => clinical_labels['pathogenic'],
+      'Benign' => clinical_labels['benign'],
+      'Likely benign' => clinical_labels['likely_benign'],
+      'Likely pathogenic' => clinical_labels['likely_pathogenic'],
+      'Pathogenic' => clinical_labels['pathogenic'],
+    }
+
+    # Clinical confidence/review weight
+    clinvar_confidence_weight = {
+      'not'    => 0,
+      'single' => 1,
+      'mult'   => 2,
+      'exp'    => 3,
+      'prof'   => 4,
+      'classified by multiple submitters' => 2,
+    }
+
+    # Set HGMD pathogenicity dictionary
+    hgmd_pathogenicity_map = {
+      'DM'  => clinical_labels['pathogenic'], # Disease mutation
+      'DM?' => clinical_labels['unknown'],    # Possible disease mutation
+      'DP'  => clinical_labels['benign'],     # Disease-associated polymorphism
+      'DFP' => clinical_labels['benign'],     # Disease-associated polymorphism with additional supporting functional evidence
+      'FP'  => clinical_labels['benign'],     # In vitro/laboratory or in vivo functional polymorphism
+      'FTV' => clinical_labels['benign'],     # Frameshift / truncating variant 
+      'CNV' => clinical_labels['benign'],     # Copy number variation
+      'R'   => clinical_labels['unknown'],    # Removed from HGMD
+    }
+
+    # HGMD confidence weight
+    hgmd_confidence_weight = {
+      'Low'  => 1,
+      'High' => 2,
+    }
+
     @@log.info("Finalizing pathogenicity... #{tmp_output_file}...")
     `bcftools view \
        --output-type v \
@@ -410,29 +452,81 @@ class Command
          elsif vcf_row.match(/^#[^#]/)
            # Add final pathogneicity tag to meta-info
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_tag},Number=.,Type=String,Description=\"Final curated pathogenicity\">"
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_comments_tag},Number=.,Type=String,Description=\"Additional comments from curator\">"
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_source_tag},Number=.,Type=String,Description=\"Source for final pathogenicity\">"
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_reason_tag},Number=.,Type=String,Description=\"Reason for final pathogenicity\">"
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_disease_tag},Number=.,Type=String,Description=\"Final curated disease\">"
 
            # Print header
            f_tmp_output_file.puts vcf_row
          else
            vcf_cols = vcf_row.split("\t")
            # TODO Finalize here
-           if (match = vcf_cols[7].match(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)).nil?
+           if (vcf_cols[7].match(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)).nil?
              # Check for curated pathogenicity
-             final_pathogenicity = match[1]
+             final[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)
+             final[:disease] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)
+             final[:pmid] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PMID=([^;\t]*)/)
+             final[:source] = "Expert-curated"
+             final[:reason] = URI.escape("This variant has been expertly curated.")
+             final[:comments] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_COMMENTS=([^;\t]*)/)
            elsif vcf_cols[7].scan(/[^;\t]*_AF=([^;\t]*)/).flatten.any? { |af| af.to_f >= 0.005 } == true
-             # Check max MAF
-             final_pathogenicity = URI.escape(clinical_labels['benign'])
-             final_pathogenicity_source = "MAF"
-             final_pathogenicity_reason = "MAF>=0.005"
-           elsif false
+             # Check if max MAF >= 0.005
+             final[:pathogenicity] = URI.escape(clinical_labels['benign'])
+             final[:disease] = "."
+             final[:pmid] = "."
+             final[:source] = "MAF"
+             final[:reason] = "MAF>=0.005"
+             final[:comments] = URI.escape("This variant contains a MAF greater than 0.005 in at least one population.")
+           elsif (vcf_cols[7].match(/(?:^|[\t;])(?:CLNSIG|(?:HGMD_)?VARIANTTYPE)=([^;\t]*)/)).nil?
              # TODO Check for HGMD / ClinVar
+             
+             # ClinVar fields
+             clinvar[:pathogenicities] = vcf_cols[7].scan(/(?:^|[\t;])CLNSIG=([^;\t]*)/).flatten[0].to_s.split(/[,|]/)
+             clinvar[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])CLNDBN=([^;\t]*)/).flatten[0].to_s.split(/[,|]/)
+             clinvar[:pmid] = "."
+             clinvar[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])CLNREVSTAT=([^;\t]*)/).flatten[0].to_s.split(/[,|]/)
+
+             ## TODO Parse ClinVar result
+             #if clinvar[:pathogenicities].empty?
+             #  
+             #end
+
+             # HGMD fields
+             hgmd[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?VARIANTTYPE=([^;\t]*)/).flatten[0]
+             hgmd[:disease] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?DISEASE=([^;\t]*)/).flatten[0]
+             hgmd[:pmid] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?PMID=([^;\t]*)/).flatten[0]
+             hgmd[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=([^;\t]*)/).flatten[0]
+
+             if !clinvar[:pathogenicity].nil? && hgmd[:pathogenicity].nil?
+               # Only found in ClinVar
+               final[:pathogenicity] = URI.escape(clinical_labels['unknown']) # TODO <-- change this
+               final[:source] = "ClinVar"
+               final[:pmid] = "."
+               final[:reason] = URI.escape("Found in ClinVar, not in HGMD")
+               final[:comments] = "."
+             elsif !hgmd[:pathogenicity].nil? && clinvar[:pathogenicity].nil?
+               # Only found in HGMD
+               final[:pathogenicity] = URI.escape(clinical_labels['unknown']) # TODO <-- change this
+               final[:source] = "HGMD"
+               final[:pmid] = vcf_cols[7].scan(/(?:^|[\t;])PMID=([^;\t]*)/).flatten[0]
+               final[:reason] = URI.escape("Found in HGMD, not in ClinVar")
+               final[:comments] = "."
+             elsif !clinvar[:pathogenicity].nil? && !hgmd[:pathogenicity].nil?
+               # TODO Found in ClinVar and HGMD
+             else
+               # Not found in ClinVar or HGMD
+               final[:pathogenicity] = URI.escape(clinical_labels['unknown'])
+               final[:source] = "."
+               final[:reason] = URI.escape("Not enough information")
+             end
+           elsif (match = vcf_cols[7].match(/(?:^|[\t;])#{@final_pred_tag}=([^;\t]*)/)).nil?
+             # TODO Use dbNSFP prediction
            else
-             # TODO Unknown significance
-             final_pathogenicity = URI.escape(clinical_labels['unknown'])
-             final_pathogenicity_source = "."
-             final_pathogenicity_reason = URI.escape("Not enough information")
+             # Unknown significance
+             final[:pathogenicity] = URI.escape(clinical_labels['unknown'])
+             final[:source] = "."
+             final[:reason] = URI.escape("Not enough information")
            end
          end
        end
