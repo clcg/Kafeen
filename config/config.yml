@@ -5,13 +5,13 @@
 
 # Clinical labels
 clinical_labels:
-  unknown: "Unknown significance"
+  unknown: "Unknown_significance"
   pathogenic: "Pathogenic"
-  likely_pathogenic: "Likely pathogenic"
-  pred_pathogenic: "Unknown significance"
+  likely_pathogenic: "Likely_pathogenic"
+  pred_pathogenic: "Unknown_significance"
   benign: "Benign"
-  likely_benign: "Likely benign"
-  pred_benign: "Likely benign"
+  likely_benign: "Likely_benign"
+  pred_benign: "Likely_benign"
 
 # Gene regions reference file
 gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
@@ -20,11 +20,14 @@ gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
 annotation_files:
   clinvar: 
     source: "ClinVar"
-    filename: "data/hg19_ClinVar_20150804.vcf.gz"
+    filename: "data/hg19_ClinVar_20150910.MORL.vcf.gz"
     fields:
-      - CLNSIG     # Clinical significance
-      - CLNDBN     # Clinical disease name
-      - CLNREVSTAT # Clinical review status
+      - CLINVAR_CLINICAL_SIGNIFICANCE # Clinical significance
+      - CLINVAR_ALL_TRAITS            # Clinical disease name
+      - CLINVAR_REVIEW_STATUS         # Clinical review status
+      - CLINVAR_ALL_PMIDS             # PubMed IDs
+      - CLINVAR_PATHOGENIC            # At least 1 pathogenic call? (0 or 1)
+      - CLINVAR_CONFLICTED            # Any conflicting calls? (0 or 1)
   dbsnp:
     source: "dbSNP142"
     filename: "data/hg19_SNP142.vcf.gz"
@@ -41,11 +44,11 @@ annotation_files:
       - LRT_PRED
       - MUTATIONTASTER_SCORE
       - MUTATIONTASTER_PRED
-      - "GERP++_RS"
+      - GERP_RS
       - PHYLOP20WAY_MAMMALIAN
   morl:
     source: "MORL"
-    filename: "data/hg19_DVD_ExpertCurations_2015-09-28.MORL.vcf.gz"
+    filename: "data/hg19_DVD_ExpertCurations_20150924.MORL.vcf.gz"
     fields: "*" # Include all fields
   evs:
     source: "EVS6500SIv2"
