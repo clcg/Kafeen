@@ -179,6 +179,7 @@ class Command
        #{files_to_merge.join(' ')}`
     @@log.info("Done merging results")
 
+    # Create index
     @@log.info("Creating index file for #{@regions2variants_result}...")
     `bcftools index --force --tbi #{@regions2variants_result}`
     @@log.info("Done creating index file")
@@ -506,12 +507,12 @@ class Command
              @@log.debug("- Pathogenicity is based on expert curation")
              # NOTE: THIS SECTION IS DONE!
              # ^Check for expert-curated pathogenicity
-             final[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)
-             final[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)
-             final[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PMID=([^;\t]*)/)
+             final[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
+             final[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
+             final[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PMID=([^;\t]*)/).flatten[0].to_s
              final[:source] = "Expert-curated"
              final[:reason] = URI.escape("This variant has been expertly curated.")
-             final[:comments] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_COMMENTS=([^;\t]*)/)
+             final[:comments] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_COMMENTS=([^;\t]*)/).flatten[0].to_s
            elsif vcf_cols[7].scan(/[^;\t]*_?AF=([^;\t]*)/).flatten.any? { |af| af.to_f >= 0.005 } == true
              @@log.debug("- Pathogenicity is based on MAF (>=0.005 in at least one population)")
 
@@ -571,6 +572,14 @@ class Command
              hgmd[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?DISEASE=([^;\t]*)/).flatten[0].to_s
              hgmd[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?PMID=([^;\t]*)/).flatten[0].to_s.gsub(/\D+/, '|')
              hgmd[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=([^;\t]*)/).flatten[0].to_s
+             # Low confidence --> Convert pathogenicity to "Likely ..."
+             if hgmd[:confidence] == 'Low'
+               if hgmd[:pathogenicity] == clinical_labels['pathogenic']
+                 hgmd[:pathogenicity] = clinical_labels['likely_pathogenic']
+               elsif hgmd[:pathogenicity] == clinical_labels['benign']
+                 hgmd[:pathogenicity] = clinical_labels['likely_benign']
+               end
+             end
 
              # Finalize pathogenicity fields...
              if !clinvar[:worst_pathogenicity].empty? && hgmd[:pathogenicity].empty?
@@ -607,16 +616,17 @@ class Command
                  final[:pathogenicity] = clinvar[:worst_pathogenicity]
                  final[:diseases] = hgmd[:diseases]
                  final[:source] = "ClinVar/HGMD"
-                 final[:pmids] = [clinvar[:pmids], hgmd[:pmids]].split(/\D+/).uniq.join('|')
-                 final[:reason] = URI.escape("Found in HGMD but not in ClinVar")
-                 final[:comments] = URI.escape("Pathogenicity is based on the literature provided in PubMed.")
+                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
+                 final[:reason] = URI.escape("Found in ClinVar and HGMD")
+                 final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed.")
                  final[:clinvar_hgmd_conflict] = 0
                else
                  # ClinVar and HGMD disagree
-                 final[:pathogenicity] = clinical_labels[:unknown]
+                 final[:pathogenicity] = clinical_labels['unknown']
+                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
                  final[:source] = "ClinVar/HGMD_conflict"
                  final[:reason] = "ClinVar/HGMD_conflict"
-                 final[:comments] = URI.escape("Pathogenicity is based on the literature provided in PubMed.")
+                 final[:comments] = URI.escape("Pathogenicity could not accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar calls determines this variant to be \"#{clinvar[:worst_pathogenicity].gsub('_', ' ')}\" while the consensus of the literature seems to be that it is \"#{hgmd[:pathogenicity].gsub('_', ' ')}\"")
                  final[:clinvar_hgmd_conflict] = 1
                end
              else
