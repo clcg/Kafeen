@@ -25,10 +25,11 @@ class Command
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
     @final_pathogenicity_tag = "FINAL_PATHOGENICITY"
-    @final_pathogenicity_comments_tag = "FINAL_NOTES"
+    @final_diseases_tag = "FINAL_DISEASE"
+    @final_pmids_tag = "FINAL_PMIDS"
+    @final_comments_tag = "FINAL_COMMENTS"
     @final_pathogenicity_source_tag = "FINAL_PATHOGENICITY_SOURCE"
     @final_pathogenicity_reason_tag = "FINAL_PATHOGENICITY_REASON"
-    @final_diseases_tag = "FINAL_DISEASE"
     @clinvar_hgmd_conflict_tag = "CLINVAR_HGMD_CONFLICTED"
 
     # Set logger
@@ -172,7 +173,7 @@ class Command
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
     @@log.info("Merging results...")
     `bcftools merge \
-       --merge all \
+       --merge none \
        --output #{@regions2variants_result} \
        --output-type z \
        #{files_to_merge.join(' ')}`
@@ -480,7 +481,7 @@ class Command
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_source_tag},Number=.,Type=String,Description=\"Source for final pathogenicity\">"
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pmids_tag},Number=.,Type=String,Description=\"PubMed IDs\">"
            f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_reason_tag},Number=.,Type=String,Description=\"Brief reason for final pathogenicity\">"
-           f_tmp_output_file.puts "##INFO=<ID=#{@final_pathogenicity_comments_tag},Number=.,Type=String,Description=\"Additional comments from curator\">"
+           f_tmp_output_file.puts "##INFO=<ID=#{@final_comments_tag},Number=.,Type=String,Description=\"Additional comments from curator\">"
            f_tmp_output_file.puts "##INFO=<ID=#{@clinvar_hgmd_conflict_tag},Number=.,Type=String,Description=\"ClinVar and HGMD disagree (0 - No, 1 - Yes)\">"
 
            # Print header
@@ -536,7 +537,7 @@ class Command
              clinvar[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_ALL_TRAITS=([^;\t]*)/).flatten[0].to_s.split(/[,|]/).uniq.delete_if { |e| e.match(/^(?:not_specified|AllHighlyPenetrant)$/) }.join('|')
 
              # Get ClinVar PMIDs (remove leading/trailing characters such as whitespace and commas
-             clinvar[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_ALL_PMIDS=([^;\t]*)/).flatten[0].to_s.gsub(/^[^0-9]+|[^0-9]+$/, '')
+             clinvar[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_ALL_PMIDS=([^;\t]*)/).flatten[0].to_s.gsub(/^[^0-9]+|[^0-9]+$/, '').gsub(/\D+/, '|')
 
              # Get ClinVar submission conflicts
              clinvar[:conflicted] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_CONFLICTED=([^;\t]*)/).flatten[0].to_s
@@ -568,7 +569,7 @@ class Command
              hgmd = {}
              hgmd[:pathogenicity] = hgmd_pathogenicity_map[vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?VARIANTTYPE=([^;\t]*)/).flatten[0]].to_s
              hgmd[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?DISEASE=([^;\t]*)/).flatten[0].to_s
-             hgmd[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?PMID=([^;\t]*)/).flatten[0].to_s
+             hgmd[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?PMID=([^;\t]*)/).flatten[0].to_s.gsub(/\D+/, '|')
              hgmd[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=([^;\t]*)/).flatten[0].to_s
 
              # Finalize pathogenicity fields...
@@ -588,12 +589,6 @@ class Command
                else
                  final[:comments] += URI.escape(" All submitters agree with this pathogenicity.")
                end
-# NOTE: Debug!
-if vcf_cols[1] == '100603614'
-  puts "clinvar[:all_pathogenicities] = #{clinvar[:all_pathogenicities]}"
-  puts "clinvar[:worst_pathogenicity] = #{clinvar[:worst_pathogenicity]}"
-  exit
-end
              elsif !hgmd[:pathogenicity].empty? && clinvar[:worst_pathogenicity].empty?
                # NOTE: THIS SECTION IS DONE!
                # ^Only found in HGMD
@@ -607,6 +602,23 @@ end
              elsif !clinvar[:worst_pathogenicity].empty? && !hgmd[:pathogenicity].empty?
                # TODO ^Found in ClinVar and HGMD
                @@log.debug("- Pathogenicity is based on ClinVar and HGMD")
+               if clinvar[:worst_pathogenicity] == hgmd[:pathogenicity]
+                 # ClinVar and HGMD agree
+                 final[:pathogenicity] = clinvar[:worst_pathogenicity]
+                 final[:diseases] = hgmd[:diseases]
+                 final[:source] = "ClinVar/HGMD"
+                 final[:pmids] = [clinvar[:pmids], hgmd[:pmids]].split(/\D+/).uniq.join('|')
+                 final[:reason] = URI.escape("Found in HGMD but not in ClinVar")
+                 final[:comments] = URI.escape("Pathogenicity is based on the literature provided in PubMed.")
+                 final[:clinvar_hgmd_conflict] = 0
+               else
+                 # ClinVar and HGMD disagree
+                 final[:pathogenicity] = clinical_labels[:unknown]
+                 final[:source] = "ClinVar/HGMD_conflict"
+                 final[:reason] = "ClinVar/HGMD_conflict"
+                 final[:comments] = URI.escape("Pathogenicity is based on the literature provided in PubMed.")
+                 final[:clinvar_hgmd_conflict] = 1
+               end
              else
                # ^Not found in ClinVar or HGMD
                @@log.warn("- SOMETHING WENT WRONG")
@@ -664,7 +676,7 @@ end
              vcf_cols[7],
              "#{@final_pathogenicity_tag}=#{final[:pathogenicity]}",
              "#{@final_pmids_tag}=#{final[:pmids]}",
-             "#{@final_pathogenicity_comments_tag}=#{final[:comments]}",
+             "#{@final_comments_tag}=#{final[:comments]}",
              "#{@final_pathogenicity_source_tag}=#{final[:source]}",
              "#{@final_pathogenicity_reason_tag}=#{final[:reason]}",
              "#{@final_diseases_tag}=#{final[:diseases]}",
