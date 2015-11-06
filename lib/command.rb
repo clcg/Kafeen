@@ -594,7 +594,7 @@ class Command
                final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions.")
                # Add notes about submission conflicts (if any)
                if clinvar[:conflicted] != '0'
-                 final[:comments] += URI.escape(" Please note that not all submitters agree with this pathogenicity.")
+                 final[:comments] += URI.escape(" Please note that not all submitters agree with this pathogenicity. ")
                else
                  final[:comments] += URI.escape(" All submitters agree with this pathogenicity.")
                end
@@ -620,8 +620,17 @@ class Command
                  final[:reason] = URI.escape("Found in ClinVar and HGMD")
                  final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed.")
                  final[:clinvar_hgmd_conflict] = 0
+               elsif clinvar[:worst_pathogenicity] == clinical_labels['pathogenic'] && hgmd[:pathogenicity] == clinical_labels['likely_pathogenic']
+                 # ClinVar says "Pathogenic", and HGMD says "Likely pathogenic"
+                 final[:pathogenicity] = clinical_labels['likely_pathogenic']
+                 final[:diseases] = hgmd[:diseases]
+                 final[:source] = "ClinVar/HGMD_mostly_agree" # TODO
+                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|') # TODO
+                 final[:reason] = URI.escape("ClinVar says 'Pathogenic', HGMD says 'Likely pathogenic'") # TODO
+                 final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinical_labels['pathogenic']}\", the consensus of the literature is that the variant is \"#{clinical_labels['likely_pathogenic']}\"") # TODO
+                 final[:clinvar_hgmd_conflict] = 0
                else
-                 # ClinVar and HGMD disagree
+                 # ClinVar and HGMD totally disagree
                  final[:pathogenicity] = clinical_labels['unknown']
                  final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
                  final[:source] = "ClinVar/HGMD_conflict"
