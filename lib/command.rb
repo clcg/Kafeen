@@ -582,10 +582,12 @@ class Command
              end
 
              # Finalize pathogenicity fields...
-             if !clinvar[:worst_pathogenicity].empty? && hgmd[:pathogenicity].empty?
+             if !clinvar[:worst_pathogenicity].empty? && (hgmd[:pathogenicity].empty? || hgmd[:pathogenicity] == clinical_labels['unknown'])
                # NOTE: THIS SECTION IS DONE!
                # ^Only found in ClinVar
                @@log.debug("- Pathogenicity is based on ClinVar submissions only")
+               @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+               @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
                final[:pathogenicity] = clinvar[:worst_pathogenicity]
                final[:diseases] = clinvar[:diseases]
                final[:source] = "ClinVar"
@@ -598,10 +600,12 @@ class Command
                else
                  final[:comments] += URI.escape(" All submitters agree with this pathogenicity.")
                end
-             elsif !hgmd[:pathogenicity].empty? && clinvar[:worst_pathogenicity].empty?
+             elsif !hgmd[:pathogenicity].empty? && (clinvar[:worst_pathogenicity].empty? || clinvar[:worst_pathogenicity] == clinical_labels['unknown'])
                # NOTE: THIS SECTION IS DONE!
                # ^Only found in HGMD
                @@log.debug("- Pathogenicity is based on HGMD only")
+               @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+               @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
                final[:pathogenicity] = hgmd[:pathogenicity]
                final[:diseases] = hgmd[:diseases]
                final[:source] = "HGMD"
@@ -612,30 +616,51 @@ class Command
                # TODO ^Found in ClinVar and HGMD
                @@log.debug("- Pathogenicity is based on ClinVar and HGMD")
                if clinvar[:worst_pathogenicity] == hgmd[:pathogenicity]
-                 # ClinVar and HGMD agree
+                 # ClinVar and HGMD totally agree
+                 @@log.debug("- ClinVar/HGMD totally agree")
+                 @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+                 @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
                  final[:pathogenicity] = clinvar[:worst_pathogenicity]
                  final[:diseases] = hgmd[:diseases]
                  final[:source] = "ClinVar/HGMD"
                  final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
-                 final[:reason] = URI.escape("Found in ClinVar and HGMD")
+                 final[:reason] = "ClinVar/HGMD_agree"
                  final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed.")
                  final[:clinvar_hgmd_conflict] = 0
-               elsif clinvar[:worst_pathogenicity] == clinical_labels['pathogenic'] && hgmd[:pathogenicity] == clinical_labels['likely_pathogenic']
-                 # ClinVar says "Pathogenic", and HGMD says "Likely pathogenic"
+               elsif (clinvar[:worst_pathogenicity] == clinical_labels['pathogenic'] && hgmd[:pathogenicity] == clinical_labels['likely_pathogenic']) || (clinvar[:worst_pathogenicity] == clinical_labels['likely_pathogenic'] && hgmd[:pathogenicity] == clinical_labels['pathogenic'])
+                 # ClinVar says "Pathogenic", and HGMD says "Likely pathogenic" *OR* vice versa
+                 @@log.debug("- ClinVar/HGMD mostly agree")
+                 @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+                 @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
                  final[:pathogenicity] = clinical_labels['likely_pathogenic']
                  final[:diseases] = hgmd[:diseases]
-                 final[:source] = "ClinVar/HGMD_mostly_agree" # TODO
-                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|') # TODO
-                 final[:reason] = URI.escape("ClinVar says 'Pathogenic', HGMD says 'Likely pathogenic'") # TODO
-                 final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinical_labels['pathogenic']}\", the consensus of the literature is that the variant is \"#{clinical_labels['likely_pathogenic']}\"") # TODO
+                 final[:source] = "ClinVar/HGMD_mostly_agree"
+                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
+                 final[:reason] = URI.escape("ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\"")
+                 final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\"")
+                 final[:clinvar_hgmd_conflict] = 0
+               elsif (clinvar[:worst_pathogenicity] == clinical_labels['benign'] && hgmd[:pathogenicity] == clinical_labels['likely_benign']) || (clinvar[:worst_pathogenicity] == clinical_labels['likely_benign'] && hgmd[:pathogenicity] == clinical_labels['benign'])
+                 # ClinVar says "Benign", and HGMD says "Likely benign" *OR* vice versa
+                 @@log.debug("- ClinVar/HGMD mostly agree")
+                 @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+                 @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
+                 final[:pathogenicity] = clinical_labels['likely_benign']
+                 final[:diseases] = '.'
+                 final[:source] = "ClinVar/HGMD_mostly_agree"
+                 final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
+                 final[:reason] = URI.escape("ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\"")
+                 final[:comments] = URI.escape("Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\"")
                  final[:clinvar_hgmd_conflict] = 0
                else
                  # ClinVar and HGMD totally disagree
+                 @@log.debug("- ClinVar/HGMD totally disagree")
+                 @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
+                 @@log.debug("  * HGMD says: #{hgmd[:pathogenicity]}")
                  final[:pathogenicity] = clinical_labels['unknown']
                  final[:pmids] = (clinvar[:pmids] + hgmd[:pmids]).gsub(/^\D+|\D+$/,'').split(/\D+/).uniq.join('|')
-                 final[:source] = "ClinVar/HGMD_conflict"
+                 final[:source] = "ClinVar/HGMD_disagree"
                  final[:reason] = "ClinVar/HGMD_conflict"
-                 final[:comments] = URI.escape("Pathogenicity could not accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar calls determines this variant to be \"#{clinvar[:worst_pathogenicity].gsub('_', ' ')}\" while the consensus of the literature seems to be that it is \"#{hgmd[:pathogenicity].gsub('_', ' ')}\"")
+                 final[:comments] = URI.escape("Pathogenicity could not accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar calls determines this variant to be \"#{clinvar[:worst_pathogenicity]}\" while the consensus of the literature seems to be that it is \"#{hgmd[:pathogenicity]}\"")
                  final[:clinvar_hgmd_conflict] = 1
                end
              else
@@ -690,6 +715,9 @@ class Command
            end
 
            # NOTE: THIS SECTION (ALL FINAL PRINTING) IS DONE
+           # Set all empty values to '.'
+           final.each { |k, v| final[k] = '.' if v == '' }
+
            # Update INFO column
            vcf_cols[7] = [
              vcf_cols[7],

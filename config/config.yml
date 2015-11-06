@@ -46,10 +46,6 @@ annotation_files:
       - MUTATIONTASTER_PRED
       - GERP_RS
       - PHYLOP20WAY_MAMMALIAN
-  morl:
-    source: "MORL"
-    filename: "data/hg19_DVD_ExpertCurations_20150924.MORL.vcf.gz"
-    fields: "*" # Include all fields
   evs:
     source: "EVS6500SIv2"
     filename: "data/hg19_ESP6500SIv2.MORL.vcf.gz"
@@ -118,3 +114,11 @@ annotation_files:
       - '1KG_ALL_AC' # Total alt allele counts
       - '1KG_ALL_AN' # Total allele count
       - '1KG_ALL_AF' # Total allele frequency
+  morl:
+    source: "MORL"
+    filename: "data/hg19_DVD_ExpertCurations_20150924.MORL.vcf.gz"
+    fields: "*" # Include all fields
+#  otoscope:
+#    source: "OtoSCOPE"
+#    filename: "data/hg19_OtoSCOPE_Mar2012.snps.vcf.gz"
+#    fields: "*" # Include all fields
