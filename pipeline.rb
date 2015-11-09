@@ -32,3 +32,7 @@ cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
 # TODO Add HGVS notation
 
 # TODO Add final pathogenicity
+cmd.finalize_pathogenicity(vcf_file: cmd.addpredictions_result,
+                           out_file_prefix: FILE_PREFIX,
+                           clinical_labels: CONFIG['clinical_labels'],
+                           enable_benign_star: CONFIG['enable_benign_star'])

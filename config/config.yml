@@ -122,3 +122,13 @@ annotation_files:
 #    source: "OtoSCOPE"
 #    filename: "data/hg19_OtoSCOPE_Mar2012.snps.vcf.gz"
 #    fields: "*" # Include all fields
+
+# Enable "Benign*" (i.e. "benign star")  pathogenicity label
+#
+# An asterisk (*) can be added to a benign label when the
+# following two criteria are met:
+# 1.) The variant is benign because it has a MAF that is greater
+#     than or equal to the maximum allowed MAF.
+# 2.) The variant is currently reported as pathogenic in ClinVar,
+#     HGMD, or both.
+enable_benign_star: true

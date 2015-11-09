@@ -413,7 +413,7 @@ class Command
   ##
   # Finalize Pathogenicity
   ##
-  def finalize_pathogenicity(vcf_file:, out_file_prefix:, clinical_labels:)
+  def finalize_pathogenicity(vcf_file:, out_file_prefix:, clinical_labels:, enable_benign_star: false)
     @@log.debug("Finalizing pathogenicity...")
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
     f_tmp_output_file = File.open(tmp_output_file, 'w')
@@ -501,11 +501,9 @@ class Command
            final[:reason] = '.'   # <- This field is for internal use only
            final[:comments] = '.' # <- Comments are for public and internal use
 
-           # TODO Finalize pathogenicity
-           #if (vcf_cols[7].match(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/)).nil?
+           # Finalize pathogenicity
            if vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten.any? { |p| p != '.'  } == true
              @@log.debug("- Pathogenicity is based on expert curation")
-             # NOTE: THIS SECTION IS DONE!
              # ^Check for expert-curated pathogenicity
              final[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
              final[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
@@ -515,19 +513,41 @@ class Command
              final[:comments] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_COMMENTS=([^;\t]*)/).flatten[0].to_s
            elsif vcf_cols[7].scan(/[^;\t]*_?AF=([^;\t]*)/).flatten.any? { |af| af.to_f >= 0.005 } == true
              @@log.debug("- Pathogenicity is based on MAF (>=0.005 in at least one population)")
-
-             # NOTE: THIS SECTION IS DONE!
              # ^Check if max MAF >= 0.005
              final[:pathogenicity] = URI.escape(clinical_labels['benign'])
              final[:diseases] = "."
              final[:pmids] = "."
              final[:source] = "MAF"
              final[:reason] = "MAF_gte_0.005"
-             final[:comments] = URI.escape("This variant contains a MAF greater than 0.005 in at least one population and is therefore labeled as \"#{clinical_labels['benign'].gsub('_', ' ')}\"")
+             final[:comments] = URI.escape("This variant contains a MAF in at least one population that meets or exceeds our maximum cutoff of 0.005.")
+             # Convert to "Benign*" if previously reported pathogenic
+             if enable_benign_star == true
+               # Is it pathogenic in ClinVar and/or HGMD (with high confidence)?
+               pathogenic_in_clinvar = !vcf_cols[7].match(/(?:^|[\t;])CLINVAR_CLINICAL_SIGNIFICANCE=[^;]*(?<![-_a-zA-Z])Pathogenic(?![-_a-zA-Z])/i).nil?
+               pathogenic_in_hgmd = (!vcf_cols[7].match(/(?:^|[\t;])(?:HGMD_)?VARIANTTYPE=DM(?:[;\t]|$)/i).nil? && !vcf_cols[7].match(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=High(?:[;\t]|$)/i).nil?)
+               if pathogenic_in_clinvar && pathogenic_in_hgmd
+                 # ^Pathogenic in ClinVar *and* HGMD
+                 @@log.debug("- Reported pathogenic in ClinVar and HGMD (with high confidence)")
+                 final[:pathogenicity] += '*'
+                 final[:reason] += "_&&_pathogenic_in_ClinVar/HGMD"
+                 final[:comments] += "_Additionally_this_variant_has_been_reported_pathogenic_in_both_ClinVar_and_the_literature_provided_in_PubMed."
+               elsif pathogenic_in_clinvar && !pathogenic_in_hgmd
+                 # ^Pathogenic in ClinVar (not HGMD)
+                 @@log.debug("- Reported pathogenic in ClinVar but not HGMD")
+                 final[:pathogenicity] += '*'
+                 final[:reason] += "_&&_pathogenic_in_ClinVar"
+                 final[:comments] += "_Additionally_this_variant_has_been_reported_pathogenic_in_ClinVar."
+               elsif !pathogenic_in_clinvar && pathogenic_in_hgmd
+                 # ^Pathogenic in HGMD (not ClinVar)
+                 @@log.debug("- Reported pathogenic in HGMD (with high confidence) but not ClinVar")
+                 final[:pathogenicity] += '*'
+                 final[:reason] += "_&&_pathogenic_in_HGMD"
+                 final[:comments] += "_Additionally_this_variant_has_been_reported_pathogenic_in_the_literature_provided_in_PubMed."
+               end
+             end
            elsif !(vcf_cols[7].match(/(?:^|[\t;])(?:CLINVAR_CLINICAL_SIGNIFICANCE|(?:HGMD_)?VARIANTTYPE)=(?:[^;\t]*)/)).nil?
-             # NOTE: ALL FIELD RETRIEVAL AND FORMATTING IS DONE BELOW!
              # ^Check for HGMD / ClinVar pathogenicity
-             
+
              # Get ClinVar pathogenicities
              clinvar = {}
              clinvar[:all_pathogenicities] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_CLINICAL_SIGNIFICANCE=([^;\t]*)/).flatten[0].to_s
@@ -583,7 +603,6 @@ class Command
 
              # Finalize pathogenicity fields...
              if !clinvar[:worst_pathogenicity].empty? && (hgmd[:pathogenicity].empty? || hgmd[:pathogenicity] == clinical_labels['unknown'])
-               # NOTE: THIS SECTION IS DONE!
                # ^Only found in ClinVar
                @@log.debug("- Pathogenicity is based on ClinVar submissions only")
                @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
@@ -601,7 +620,6 @@ class Command
                  final[:comments] += URI.escape(" All submitters agree with this pathogenicity.")
                end
              elsif !hgmd[:pathogenicity].empty? && (clinvar[:worst_pathogenicity].empty? || clinvar[:worst_pathogenicity] == clinical_labels['unknown'])
-               # NOTE: THIS SECTION IS DONE!
                # ^Only found in HGMD
                @@log.debug("- Pathogenicity is based on HGMD only")
                @@log.debug("  * ClinVar says: #{clinvar[:worst_pathogenicity]}")
@@ -613,7 +631,7 @@ class Command
                final[:reason] = URI.escape("Found in HGMD but not in ClinVar")
                final[:comments] = URI.escape("Pathogenicity is based on the literature provided in PubMed.")
              elsif !clinvar[:worst_pathogenicity].empty? && !hgmd[:pathogenicity].empty?
-               # TODO ^Found in ClinVar and HGMD
+               # ^Found in ClinVar and HGMD
                @@log.debug("- Pathogenicity is based on ClinVar and HGMD")
                if clinvar[:worst_pathogenicity] == hgmd[:pathogenicity]
                  # ClinVar and HGMD totally agree
@@ -674,7 +692,6 @@ class Command
              @@log.debug("- Pathogenicity is based on predictions from dbNSFP")
              # ^Use dbNSFP prediction
              if match == clinical_labels['unknown']
-               # NOTE: THIS SECTION IS DONE!
                # ^Not enough prediction data
                final[:pathogenicity] = clinical_labels['unknown']
                final[:diseases] = '.'
@@ -684,7 +701,6 @@ class Command
                final[:comments] = '.'
                @@log.debug("- Not enough predictions")
              else
-               # NOTE: THIS SECTION IS DONE!
                # ^Set final pathogenicity as predicted pathogenicity
                final[:pathogenicity] = match
                final[:diseases] = '.'
@@ -714,7 +730,6 @@ class Command
              final[:comments] = URI.escape("This variant is a VUS because it does not have enough info")
            end
 
-           # NOTE: THIS SECTION (ALL FINAL PRINTING) IS DONE
            # Set all empty values to '.'
            final.each { |k, v| final[k] = '.' if v == '' }
 
