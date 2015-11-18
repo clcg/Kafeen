@@ -10,14 +10,15 @@ class Command
   # Result file paths
   attr_reader :genes2regions_result
   attr_reader :regions2variants_result
-  attr_reader :addgenes_result
-  attr_reader :addpredictions_result
+  attr_reader :add_genes_result
+  attr_reader :add_predictions_result
+  attr_reader :add_asap_result
   attr_reader :finalize_pathogenicity_result
 
   ##
   # Initialize
   ##
-  def initialize(log_level: 'INFO', log_out: STDOUT)
+  def initialize(log_level: 'info', log_out: STDOUT)
     # Set custom VCF tags that will be added
     @gerp_pred_tag = "GERP_PRED"
     @phylop20way_mammalian_pred_tag = "PHYLOP20WAY_MAMMALIAN_PRED"
@@ -34,18 +35,23 @@ class Command
 
     # Set logger
     @@log = Logger.new(log_out)
-    if log_level == 'UNKNOWN'
+    if log_level.upcase == 'UNKNOWN'
       @@log.level = Logger::UNKNOWN
-    elsif log_level == 'FATAL'
+    elsif log_level.upcase == 'FATAL'
       @@log.level = Logger::FATAL
-    elsif log_level == 'ERROR'
+    elsif log_level.upcase == 'ERROR'
       @@log.level = Logger::ERROR
-    elsif log_level == 'WARN'
+    elsif log_level.upcase == 'WARN'
       @@log.level = Logger::WARN
-    elsif log_level == 'DEBUG'
-      @@log.level = Logger::DEBUG
-    else
+    elsif log_level.upcase == 'INFO'
       @@log.level = Logger::INFO
+    elsif log_level.upcase == 'DEBUG'
+      @@log.level = Logger::DEBUG
+      @@log.debug("Debugging messages enabled")
+    else
+      @@log.level = Logger::DEBUG
+      @@log.error("#{log_level} is not a valid log level")
+      @@log.warn("Debugging messages enabled by default")
     end
   end
 
@@ -198,7 +204,7 @@ class Command
   ##
   # Take genes from BED file and add to VCF file
   ##
-  def addgenes(bed_file:, vcf_file:, out_file_prefix:)
+  def add_genes(bed_file:, vcf_file:, out_file_prefix:)
     # Prepare header file
     header_file = "#{out_file_prefix}.header.tmp.txt"
     header_line = '##INFO=<ID=GENE,Number=1,Type=String,Description="HGNC gene symbol">'
@@ -221,13 +227,13 @@ class Command
     @@log.info("Genes added to #{tmp_output_file}")
 
     # Move tmp output to be the new output file
-    @addgenes_result = "#{out_file_prefix}.vcf.gz"
-    @@log.info("Moving output to #{@addgenes_result}...")
-    File.rename(tmp_output_file, @addgenes_result)
+    @add_genes_result = "#{out_file_prefix}.vcf.gz"
+    @@log.info("Moving output to #{@add_genes_result}...")
+    File.rename(tmp_output_file, @add_genes_result)
 
     # Create index
-    @@log.info("Creating index for #{@addgenes_result}...")
-    `bcftools index --force --tbi #{@addgenes_result}`
+    @@log.info("Creating index for #{@add_genes_result}...")
+    `bcftools index --force --tbi #{@add_genes_result}`
     @@log.info("Done creating index file")
 
     # Remove tmp files
@@ -240,7 +246,7 @@ class Command
   ##
   # Add predictions from dbNSFP
   ##
-  def addpredictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
+  def add_predictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
     # Get only regions of interest from dbNSFP
     @@log.info("Subsetting dbNSFP for faster annotation...")
     dbnsfp_subset_file = "#{out_file_prefix}.dbNSFP_subset.tmp.bcf.gz"
@@ -386,27 +392,178 @@ class Command
     f_tmp_output_file.close
     @@log.info("Predictions added to #{tmp_output_file}")
 
-    @addpredictions_result = "#{out_file_prefix}.vcf.gz"
+    @add_predictions_result = "#{out_file_prefix}.vcf.gz"
     @@log.info("Compressing #{tmp_output_file}")
     # Compress the output file
     `bcftools view \
        --output-type z \
-       --output-file #{@addpredictions_result} \
+       --output-file #{@add_predictions_result} \
        #{tmp_output_file}`
-    @@log.info("Compressed output written to #{@addpredictions_result}...")
+    @@log.info("Compressed output written to #{@add_predictions_result}...")
 
     # Index output file
-    @@log.info("Indexing #{@addpredictions_result}...")
+    @@log.info("Indexing #{@add_predictions_result}...")
     `bcftools index  \
        --force \
        --tbi \
-       #{@addpredictions_result}`
+       #{@add_predictions_result}`
     @@log.info("Done creating index file")
 
     @@log.info("Removing tmp files...")
     File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
     File.unlink(dbnsfp_subset_file) if File.exist?(dbnsfp_subset_file)
     File.unlink("#{dbnsfp_subset_file}.csi") if File.exist?("#{dbnsfp_subset_file}.csi")
+    @@log.info("Done removing tmp files")
+  end
+
+  def _get_asap_variant(chr, pos, ref, alt)
+    pos = pos.to_i
+    if ref == '-' || alt == '-'
+      # Already in correct format
+      # -- DO NOTHING
+    elsif ref.length == 1 && alt.length == 1
+      # Substitution (already in correct format)
+      # -- DO NOTHING
+    elsif ref.length == 1 && alt.length > 1
+      # INSERTION
+      # Remove redundant nucleotides from beginning of sequences
+      ref.length.times do |i|
+        if alt.match(/^#{ref[0..-1-i]}/)
+          alt = alt.sub(/^#{ref[0..-1-i]}/, '')
+          ref = ref.sub(/^#{ref[0..-1-i]}/, '')
+          break
+        end
+      end
+      pos += 1
+    elsif ref.length > 1 && (alt.length == 1 || alt.length > 1)
+      # DELETION or DELETION / INSERTION
+      # Remove redundant nucleotides from beginning of sequences
+      alt.length.times do |i|
+        if ref.match(/^#{alt[0..-1-i]}/)
+          ref = ref.sub(/^#{alt[0..-1-i]}/, '')
+          alt = alt.sub(/^#{alt[0..-1-i]}/, '')
+          break
+        end
+      end
+      pos += 1
+    else
+      # No match
+      # -- DO NOTHING
+    end
+    ref = '-' if ref.empty?
+    alt = '-' if alt.empty?
+    return "chr#{chr}:#{pos}:#{ref}>#{alt}"
+  end
+
+  def add_asap(vcf_file:, out_file_prefix:, asap_path:, ref_flat:, ref_seq_ali:, fasta:)
+    # Set INFO tags
+    @asap_hgvs_c_tag = 'ASAP_HGVS_C'
+    @asap_hgvs_p_tag = 'ASAP_HGVS_P'
+    @asap_locale_tag = 'ASAP_LOCALE'
+    @asap_function_tag = 'ASAP_FUNCTION'
+
+    tmp_asap_input  = "#{out_file_prefix}.asap.in.tmp.txt"
+    f_tmp_asap_input  = File.open(tmp_asap_input, 'w')
+    @@log.info("Preparing ASAP input file...")
+    `bcftools query \
+       --format '%CHROM\\t%POS\\t%REF\\t%ALT\\n' \
+       #{vcf_file}`.each_line do |vcf_row|
+         # Print ASAP input file
+         # -- Replace empty values with '.'
+         chr,pos,ref,alt = vcf_row.chomp.split("\t")
+         f_tmp_asap_input.puts [_get_asap_variant(chr, pos, ref, alt), chr, pos, ref, alt].join("\t")
+       end
+    # ^ End ASAP conversion
+    f_tmp_asap_input.close
+
+    # Run ASAP
+    tmp_asap_output = "#{out_file_prefix}.asap.out.tmp.txt"
+    f_tmp_asap_output  = File.open(tmp_asap_output, 'w')
+    asap_error_log = "#{out_file_prefix}.asap.errors.log"
+    validate = true
+    @@log.info("Running ASAP...")
+    `java -Xmx2048m -jar #{asap_path} \
+       --refFlat #{ref_flat} \
+       --refSeqAli #{ref_seq_ali} \
+       --fasta #{fasta} \
+       --positions-file #{tmp_asap_input} 2> #{asap_error_log}
+    `.each_line do |line|
+        line.chomp!
+
+        # Validate first line to see if ASAP is running okay
+        if validate
+          validate = false
+          if line == "Use: manditory*"
+            break
+          end
+        end
+
+        # Parse ASAP output
+        fields = line.split("\t", -1)
+
+        # Print: chr, pos, ref, alt, HGVS_c, HGVS_p, locale, impact
+        # -- Do not print error records
+        if !fields[5].include?("ERROR_")
+          f_tmp_asap_output.puts [fields[1..4], fields[6..7], fields[10], fields[12]].flatten.join("\t")
+        end
+    end
+    f_tmp_asap_output.close
+
+    # Check output
+    if File.zero?(asap_error_log)
+      # No errors occurred
+      @@log.info("ASAP output written to #{tmp_asap_output}")
+      File.unlink(asap_error_log) if File.exist?(asap_error_log)
+
+      # Compress output
+      @@log.info("Compressing #{tmp_asap_output}...")
+      `bgzip -f #{tmp_asap_output}`
+      @@log.info("Compressed output written to #{tmp_asap_output}")
+
+      # Index output
+      @@log.info("Indexing #{tmp_asap_output}.gz...")
+      `tabix -f -s1 -b2 -e2 #{tmp_asap_output}.gz`
+      @@log.info("Done creating index file")
+
+      # Create VCF header file
+      @@log.info("Creating VCF header file...")
+      tmp_vcf_header = "#{out_file_prefix}.header.tmp.txt"
+      header = [
+        "##INFO=<ID=#{@asap_hgvs_c_tag},Number=1,Type=String,Description=\"HGVS cDNA annotation according to ASAP\">",
+        "##INFO=<ID=#{@asap_hgvs_p_tag},Number=1,Type=String,Description=\"HGVS protein annotation according to ASAP\">",
+        "##INFO=<ID=#{@asap_locale_tag},Number=1,Type=String,Description=\"Variant locale (e.g. exon, intron, etc.) according to ASAP\">",
+        "##INFO=<ID=#{@asap_function_tag},Number=1,Type=String,Description=\"Variant function (e.g. missense, frameshift, etc.) according to ASAP\">",
+      ].join("\n") + "\n"
+      File.open(tmp_vcf_header, 'w') { |f| f.write(header) }
+      @@log.info("VCF header file written to #{tmp_vcf_header}")
+
+      # Annotate VCF with ASAP output
+      @add_asap_result = "#{out_file_prefix}.vcf.gz"
+      tmp_output_vcf = "#{out_file_prefix}.tmp.vcf.gz"
+      @@log.info("Annotating VCF with ASAP output...")
+      `bcftools annotate \
+         --annotations #{tmp_asap_output}.gz \
+         --columns CHROM,POS,REF,ALT,#{@asap_hgvs_c_tag},#{@asap_hgvs_p_tag},#{@asap_locale_tag},#{@asap_function_tag} \
+         --header-lines #{tmp_vcf_header} \
+         --output #{tmp_output_vcf} \
+         --output-type z \
+         #{vcf_file}`
+
+      # Rename tmp output to final output
+      File.rename(tmp_output_vcf, @add_asap_result)
+      @@log.info("Output written to #{@add_asap_result}")
+    else
+      # Errors occurred... skipping annotation
+      @@log.error("There was a problem running ASAP -- refer to #{asap_error_log}")
+    end
+
+    # Remove tmp files
+    @@log.info("Removing tmp files...")
+    File.unlink(tmp_asap_input) if File.exist?(tmp_asap_input)
+    File.unlink("#{tmp_asap_output}.gz") if File.exist?("#{tmp_asap_output}.gz")
+    File.unlink("#{tmp_asap_output}.gz.tbi") if File.exist?("#{tmp_asap_output}.gz.tbi")
+    File.unlink(tmp_vcf_header) if File.exist?(tmp_vcf_header)
+    File.unlink(tmp_output_vcf) if File.exist?(tmp_output_vcf)
     @@log.info("Done removing tmp files")
   end
 

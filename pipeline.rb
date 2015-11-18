@@ -18,21 +18,21 @@ cmd.regions2variants(bed_file: cmd.genes2regions_result,
                      out_file_prefix: FILE_PREFIX)
 
 # Add gene symbol to each record in VCF
-cmd.addgenes(bed_file: cmd.genes2regions_result,
+cmd.add_genes(bed_file: cmd.genes2regions_result,
              vcf_file: cmd.regions2variants_result,
              out_file_prefix: FILE_PREFIX)
 
 # Annotate with dbNSFP
-cmd.addpredictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
-                   vcf_file: cmd.addgenes_result,
+cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
+                   vcf_file: cmd.add_genes_result,
                    bed_file: cmd.genes2regions_result,
                    out_file_prefix: FILE_PREFIX,
                    clinical_labels: CONFIG['clinical_labels'])
 
 # TODO Add HGVS notation
 
-# TODO Add final pathogenicity
-cmd.finalize_pathogenicity(vcf_file: cmd.addpredictions_result,
+# Add final pathogenicity
+cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
                            out_file_prefix: FILE_PREFIX,
                            clinical_labels: CONFIG['clinical_labels'],
                            enable_benign_star: CONFIG['enable_benign_star'])

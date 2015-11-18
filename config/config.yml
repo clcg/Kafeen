@@ -86,12 +86,12 @@ annotation_files:
       - ExAC_SAS_AF # South Asian allele frequency
   hgmd:
     source: "HGMD"
-    filename: "data/hg19_HGMD_2014r4.MORL.vcf.gz"
+    filename: "data/hg19_HGMD_2015r2.MORL.vcf.gz"
     fields:
-      - VARIANTTYPE # Type of variant (DM - disease-causing)
-      - DISEASE     # Disease(s); comma-separated
-      - CONFIDENCE  # Pathogenicity confidence
-      - PMID        # PubMed ID(s); comma-separated
+      - HGMD_VARIANTTYPE # Type of variant (DM - disease-causing)
+      - HGMD_DISEASE     # Disease(s)
+      - HGMD_CONFIDENCE  # Pathogenicity confidence
+      - HGMD_PMID        # PubMed ID(s)
   g1000:
     source: "1000Genomes"
     filename: "data/hg19_1000Gp3_Oct2014.MORL.vcf.gz"
@@ -132,3 +132,14 @@ annotation_files:
 # 2.) The variant is currently reported as pathogenic in ClinVar,
 #     HGMD, or both.
 enable_benign_star: true
+
+# Third party dependencies
+#
+# Supply the full path to third party dependencies.
+third_party:
+  # ASAP annotation tool
+  asap:
+    path: '/Users/sephraim/programs/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
+    ref_flat: 'data/asap/refFlat.20130302.txt.gz'
+    ref_seq_ali: 'data/asap/refSeqAli.20130302.txt.gz'
+    fasta: 'data/asap/hg19_and_random_gatk.fa'
