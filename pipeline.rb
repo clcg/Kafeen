@@ -29,7 +29,13 @@ cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                    out_file_prefix: FILE_PREFIX,
                    clinical_labels: CONFIG['clinical_labels'])
 
-# TODO Add HGVS notation
+# Add HGVS notation (using ASAP)
+cmd.add_asap(vcf_file: "GJB2.vcf.gz",
+             out_file_prefix: FILE_PREFIX,
+             asap_path: CONFIG['third_party']['asap']['path'],
+             ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+             ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+             fasta: CONFIG['third_party']['asap']['fasta'])
 
 # Add final pathogenicity
 cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
