@@ -553,6 +553,14 @@ class Command
       # Rename tmp output to final output
       File.rename(tmp_output_vcf, @add_asap_result)
       @@log.info("Output written to #{@add_asap_result}")
+
+      # Index output file
+      @@log.info("Indexing #{@add_asap_result}...")
+      `bcftools index  \
+         --force \
+         --tbi \
+         #{@add_asap_result}`
+      @@log.info("Done creating index file")
     else
       # Errors occurred... skipping annotation
       @@log.error("There was a problem running ASAP -- refer to #{asap_error_log}")
