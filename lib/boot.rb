@@ -21,8 +21,9 @@ CONFIG = YAML.load_file(File.join('config', 'config.yml'))
 utils = ['bcftools', 'tabix', 'bgzip']
 utils.each do |util|
   if `which #{util} 2> /dev/null`.empty?
-    puts "ERROR: #{util} is not in your $PATH, which is required to run this tool"
+    # Print to stderr
+    STDERR.puts "ERROR: #{util} is not in your $PATH, which is required to run this tool"
     boot_fail = true
   end
 end
-exit if boot_fail
+abort if boot_fail
