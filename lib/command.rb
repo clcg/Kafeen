@@ -19,20 +19,6 @@ class Command
   # Initialize
   ##
   def initialize(log_level: 'info', log_out: STDOUT)
-    # Set custom VCF tags that will be added
-    @gerp_pred_tag = "GERP_PRED"
-    @phylop20way_mammalian_pred_tag = "PHYLOP20WAY_MAMMALIAN_PRED"
-    @num_path_preds_tag = "NUM_PATH_PREDS"
-    @total_num_preds_tag = "TOTAL_NUM_PREDS"
-    @final_pred_tag = "FINAL_PRED"
-    @final_pathogenicity_tag = "FINAL_PATHOGENICITY"
-    @final_diseases_tag = "FINAL_DISEASE"
-    @final_pmids_tag = "FINAL_PMIDS"
-    @final_comments_tag = "FINAL_COMMENTS"
-    @final_pathogenicity_source_tag = "FINAL_PATHOGENICITY_SOURCE"
-    @final_pathogenicity_reason_tag = "FINAL_PATHOGENICITY_REASON"
-    @clinvar_hgmd_conflict_tag = "CLINVAR_HGMD_CONFLICTED"
-
     # Set logger
     @@log = Logger.new(log_out)
     if log_level.upcase == 'UNKNOWN'
@@ -247,6 +233,13 @@ class Command
   # Add predictions from dbNSFP
   ##
   def add_predictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
+    # Set custom VCF tags to be added to output
+    @gerp_pred_tag = "GERP_PRED"
+    @phylop20way_mammalian_pred_tag = "PHYLOP20WAY_MAMMALIAN_PRED"
+    @num_path_preds_tag = "NUM_PATH_PREDS"
+    @total_num_preds_tag = "TOTAL_NUM_PREDS"
+    @final_pred_tag = "FINAL_PRED"
+
     # Get only regions of interest from dbNSFP
     @@log.info("Subsetting dbNSFP for faster annotation...")
     dbnsfp_subset_file = "#{out_file_prefix}.dbNSFP_subset.tmp.bcf.gz"
@@ -580,6 +573,16 @@ class Command
   # Finalize Pathogenicity
   ##
   def finalize_pathogenicity(vcf_file:, out_file_prefix:, clinical_labels:, enable_benign_star: false)
+    # Set custom VCF tags to be added to output
+    @final_pathogenicity_tag = "FINAL_PATHOGENICITY"
+    @final_diseases_tag = "FINAL_DISEASE"
+    @final_pmids_tag = "FINAL_PMIDS"
+    @final_comments_tag = "FINAL_COMMENTS"
+    @final_pathogenicity_source_tag = "FINAL_PATHOGENICITY_SOURCE"
+    @final_pathogenicity_reason_tag = "FINAL_PATHOGENICITY_REASON"
+    @clinvar_hgmd_conflict_tag = "CLINVAR_HGMD_CONFLICTED"
+
+
     @@log.debug("Finalizing pathogenicity...")
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
 
@@ -940,8 +943,72 @@ class Command
        #{@finalize_pathogenicity_result}`
     @@log.info("Done creating index file")
 
+    # Remove tmp files  
     @@log.info("Removing tmp files...")
     File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
     @@log.info("Done removing tmp files")
+  end
+
+  # Cleanup header
+  # NOTE: Do not use yet
+  def cleanup_header(vcf_file:, out_file_prefix:)
+    @@log.info("Cleaning up VCF header...")
+
+    tmp_header_file = "#{out_file_prefix}.header.tmp.txt"
+    tmp_output_file = "#{out_file_prefix}.tmp.vcf.gz"
+
+    # Create header file
+    File.open(tmp_header_file, 'w') do |f|
+      `bcftools view \
+         --header-only \
+         #{vcf_file}`
+      .each_line do |line|
+        line.chomp!
+        if line.match(/^#(?:#fileformat|#INFO|CHROM)=/)
+          f.puts line
+        end
+      end
+      f.puts ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'].join("\t")
+    end
+    
+    # Re-header
+#    `bcftools reheader \
+#       --header #{tmp_header_file} \
+#       #{vcf_file} \
+#     | bcftools view \
+#         --output-type z \
+#         --output-file #{tmp_output_file}`
+
+puts "Beginning 'bcftools reheader' on #{vcf_file}..."
+    `bcftools reheader \
+       --header #{tmp_header_file} \
+       --output #{tmp_output_file} \
+       #{vcf_file}`
+
+    # NOTE: This is causing issues right now
+puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
+    @cleanup_header_result = "#{out_file_prefix}.vcf.gz"
+    `bcftools view \
+       --output-type z \
+       --output-file #{@cleanup_header_result} \
+       #{tmp_output_file}`
+
+    # Move tmp file to output file
+    #File.rename(tmp_output_file, @cleanup_header_result)
+    @@log.info("Output written to #{@cleanup_header_result}")
+
+    # Index output file
+    @@log.info("Indexing #{@cleanup_header_result}...")
+    `bcftools index  \
+       --force \
+       --tbi \
+       #{@cleanup_header_result}`
+    @@log.info("Done creating index file")
+
+#    # Remove tmp files
+#    @@log.info("Removing tmp files...")
+#    File.unlink(tmp_header_file) if File.exist?(tmp_header_file)
+#    File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
+#    @@log.info("Done removing tmp files")
   end
 end
