@@ -5,13 +5,13 @@
 
 # Clinical labels
 clinical_labels:
-  unknown: "Unknown_significance"
+  unknown: "Unknown significance"
   pathogenic: "Pathogenic"
-  likely_pathogenic: "Likely_pathogenic"
-  pred_pathogenic: "Unknown_significance"
+  likely_pathogenic: "Likely pathogenic"
+  pred_pathogenic: "Unknown significance"
   benign: "Benign"
-  likely_benign: "Likely_benign"
-  pred_benign: "Likely_benign"
+  likely_benign: "Likely benign"
+  pred_benign: "Likely benign"
 
 # Gene regions reference file
 gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
