@@ -20,14 +20,14 @@ gene_regions_ref_file: "data/hg19_gene_and_mitochondrial_regions.bed"
 annotation_files:
   clinvar: 
     source: "ClinVar"
-    filename: "data/hg19_ClinVar_20150910.MORL.vcf.gz"
+    filename: "data/hg19_ClinVar_20151102.MORL.vcf.gz"
     fields:
-      - CLINVAR_CLINICAL_SIGNIFICANCE # Clinical significance
-      - CLINVAR_ALL_TRAITS            # Clinical disease name
-      - CLINVAR_REVIEW_STATUS         # Clinical review status
-      - CLINVAR_ALL_PMIDS             # PubMed IDs
-      - CLINVAR_PATHOGENIC            # At least 1 pathogenic call? (0 or 1)
-      - CLINVAR_CONFLICTED            # Any conflicting calls? (0 or 1)
+      - CLINVAR_CLNSIG      # Clinical significance
+      - CLINVAR_DISEASE     # Clinical disease name
+      - CLINVAR_REVSTAT     # Clinical review status
+      - CLINVAR_PMID        # PubMed IDs
+      - CLINVAR_PATHOGENIC  # At least 1 pathogenic call? (0 or 1)
+      - CLINVAR_CONFLICTED  # Any conflicting calls? (0 or 1)
   dbsnp:
     source: "dbSNP142"
     filename: "data/hg19_SNP142.vcf.gz"
