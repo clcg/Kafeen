@@ -376,7 +376,7 @@ class Command
              if v.to_s.strip.empty?
                output[k] = '.'
              else
-               output[k] = URI.escape(output[k].to_s, ',= ')
+               output[k] = URI.escape(output[k].to_s, ';,= ')
              end
            end
 
@@ -705,8 +705,8 @@ class Command
             # Convert to "Benign*" if previously reported pathogenic
             if enable_benign_star == true
               # Is it pathogenic in ClinVar and/or HGMD (with high confidence)?
-              pathogenic_in_clinvar = !vcf_cols[7].match(/(?:^|[\t;])CLINVAR_CLINICAL_SIGNIFICANCE=[^;]*(?<![-_a-zA-Z])Pathogenic(?![-_a-zA-Z])/i).nil?
-              pathogenic_in_hgmd = (!vcf_cols[7].match(/(?:^|[\t;])(?:HGMD_)?VARIANTTYPE=DM(?:[;\t]|$)/i).nil? && !vcf_cols[7].match(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=High(?:[;\t]|$)/i).nil?)
+              pathogenic_in_clinvar = !vcf_cols[7].match(/(?:^|[\t;])CLINVAR_CLNSIG=[^;]*(?<![-_a-zA-Z])Pathogenic(?![-_a-zA-Z])/i).nil?
+              pathogenic_in_hgmd = (!vcf_cols[7].match(/(?:^|[\t;])HGMD_VARIANTTYPE=DM(?:[;\t]|$)/i).nil? && !vcf_cols[7].match(/(?:^|[\t;])HGMD_CONFIDENCE=High(?:[;\t]|$)/i).nil?)
               if pathogenic_in_clinvar && pathogenic_in_hgmd
                 # ^Pathogenic in ClinVar *and* HGMD
                 @@log.debug("- Reported pathogenic in ClinVar and HGMD (with high confidence)")
@@ -727,20 +727,20 @@ class Command
                 final[:comments] += "_Additionally_this_variant_has_been_reported_pathogenic_in_the_literature_provided_in_PubMed."
               end
             end
-          elsif !(vcf_cols[7].match(/(?:^|[\t;])(?:CLINVAR_CLINICAL_SIGNIFICANCE|(?:HGMD_)?VARIANTTYPE)=(?:[^;\t]*)/)).nil?
+          elsif !(vcf_cols[7].match(/(?:^|[\t;])(?:CLINVAR_CLNSIG|HGMD_VARIANTTYPE)=(?:[^;\t]*)/)).nil?
             # ^Check for HGMD / ClinVar pathogenicity
   
             # Get ClinVar pathogenicities
             clinvar = {}
-            clinvar[:all_pathogenicities] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_CLINICAL_SIGNIFICANCE=([^;\t]*)/).flatten[0].to_s
+            clinvar[:all_pathogenicities] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_CLNSIG=([^;\t]*)/).flatten[0].to_s
   
             # Get ClinVar diseases, and...
             # 1.) Remove duplicates
             # 2.) Remove values that are (a) 'not_specified' or (b) 'AllHighlyPenetrant'
-            clinvar[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_ALL_TRAITS=([^;\t]*)/).flatten[0].to_s.split(/[,|]/).uniq.delete_if { |e| e.match(/^(?:not_specified|AllHighlyPenetrant)$/) }.join('|')
+            clinvar[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_DISEASE=([^;\t]*)/).flatten[0].to_s.split(/[,|]/).uniq.delete_if { |e| e.match(/^(?:not_specified|AllHighlyPenetrant)$/) }.join(', ')
   
             # Get ClinVar PMIDs (remove leading/trailing characters such as whitespace and commas
-            clinvar[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_ALL_PMIDS=([^;\t]*)/).flatten[0].to_s.gsub(/^[^0-9]+|[^0-9]+$/, '').gsub(/\D+/, '|')
+            clinvar[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_PMID=([^;\t]*)/).flatten[0].to_s
   
             # Get ClinVar submission conflicts
             clinvar[:conflicted] = vcf_cols[7].scan(/(?:^|[\t;])CLINVAR_CONFLICTED=([^;\t]*)/).flatten[0].to_s
@@ -770,10 +770,10 @@ class Command
   
             # HGMD fields
             hgmd = {}
-            hgmd[:pathogenicity] = hgmd_pathogenicity_map[vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?VARIANTTYPE=([^;\t]*)/).flatten[0]].to_s
-            hgmd[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?DISEASE=([^;\t]*)/).flatten[0].to_s
-            hgmd[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?PMID=([^;\t]*)/).flatten[0].to_s.gsub(/\D+/, '|')
-            hgmd[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])(?:HGMD_)?CONFIDENCE=([^;\t]*)/).flatten[0].to_s
+            hgmd[:pathogenicity] = hgmd_pathogenicity_map[vcf_cols[7].scan(/(?:^|[\t;])HGMD_VARIANTTYPE=([^;\t]*)/).flatten[0]].to_s
+            hgmd[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])HGMD_DISEASE=([^;\t]*)/).flatten[0].to_s
+            hgmd[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])HGMD_PMID=([^;\t]*)/).flatten[0].to_s
+            hgmd[:confidence] = vcf_cols[7].scan(/(?:^|[\t;])HGMD_CONFIDENCE=([^;\t]*)/).flatten[0].to_s
             # Low confidence --> Convert pathogenicity to "Likely ..."
             if hgmd[:confidence] == 'Low'
               if hgmd[:pathogenicity] == clinical_labels['pathogenic']
@@ -918,7 +918,7 @@ class Command
             if v.to_s.strip.empty?
               final[k] = '.'
             else
-              final[k] = URI.escape(final[k].to_s, ',= ')
+              final[k] = URI.escape(final[k].to_s, ';,= ')
             end
           end
   
