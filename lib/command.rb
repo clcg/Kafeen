@@ -81,75 +81,70 @@ class Command
   ##
   def regions2variants(bed_file:, vcf_files:, out_file_prefix:, keep_tmp_files: false)
     tmp_vcfs = {}
-    File.open(bed_file).each do |region|
-      chr,pos_start,pos_end,gene = region.chomp.split("\t")
-      chr.sub!('chr', '')
+    # Query all VCF files for variants
+    vcf_files.each do |key, vcf|
+      next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
+      tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
+      if vcf['fields'].nil?
+        # Remove all INFO tags
+        fields = 'INFO'
+      elsif vcf['fields'] == '*'
+        # Keep all INFO tags
+        fields = '*'
+      else
+        # Keep only the following INFO tags (indicated by ^)
+        fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
+      end
 
-      # Query all VCF files for variants
-      vcf_files.each do |key, vcf|
-        next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
-        tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
-        if vcf['fields'].nil?
-          # Remove all INFO tags
-          fields = 'INFO'
-        elsif vcf['fields'] == '*'
-          # Keep all INFO tags
-          fields = '*'
-        else
-          # Keep only the following INFO tags (indicated by ^)
-          fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
-        end
-
-        # Query...
-        @@log.info("Querying #{vcf['source']}...")
-        if fields != '*'
-          stdout, stderr = Open3.capture3(
-            "bcftools annotate \
-               --remove '#{fields}' \
-               --regions-file '#{bed_file}' \
-               --exclude 'TYPE=\"other\"' \
-               #{vcf['filename']} \
-             | bcftools norm \
-                 --multiallelics '-' \
-                 --output-type z \
-                 --output #{tmp_source_vcf}"
-          )
-          stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
-          if !stderr.empty?
-            @@log.warn("bcftools returned an error for #{vcf['source']}. Trying another query method...")
-          end
-        end
-
-        # Did bcftools return an error?
-        # Try again and don't remove any INFO tags this time
-        if fields == '*' || !stderr.empty?
-          stdout, stderr = Open3.capture3(
-            "bcftools view \
-               --regions-file '#{bed_file}' \
-               --exclude 'TYPE=\"other\"' \
-               #{vcf['filename']} \
-             | bcftools norm \
-                 --multiallelics '-' \
-                 --output-type z \
-                 --output #{tmp_source_vcf}"
-          )
-          stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
-        end
-
-        # Index the results file...
+      # Query...
+      @@log.info("Querying #{vcf['source']}...")
+      if fields != '*'
+        stdout, stderr = Open3.capture3(
+          "bcftools annotate \
+             --remove '#{fields}' \
+             --regions-file '#{bed_file}' \
+             --exclude 'TYPE=\"other\"' \
+             #{vcf['filename']} \
+           | bcftools norm \
+               --multiallelics '-' \
+               --output-type z \
+               --output #{tmp_source_vcf}"
+        )
+        stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
         if !stderr.empty?
-          # ERROR
-          @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
-        else
-          # SUCCESS -- create index file
-          @@log.info("Successfully queried #{vcf['source']}")
-          @@log.info("Creating index file for #{vcf['source']}...")
-          `bcftools index --force --tbi #{tmp_source_vcf}`
-          @@log.info("Done creating index file")
-
-          # Store tmp file name (filename) and the original VCF that the data came from (parent)
-          tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
+          @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
         end
+      end
+
+      # Did bcftools return an error?
+      # Try again and don't remove any INFO tags this time
+      if fields == '*' || !stderr.empty?
+        stdout, stderr = Open3.capture3(
+          "bcftools view \
+             --regions-file '#{bed_file}' \
+             --exclude 'TYPE=\"other\"' \
+             #{vcf['filename']} \
+           | bcftools norm \
+               --multiallelics '-' \
+               --output-type z \
+               --output #{tmp_source_vcf}"
+        )
+        stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
+      end
+
+      # Index the results file...
+      if !stderr.empty?
+        # ERROR
+        @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
+      else
+        # SUCCESS -- create index file
+        @@log.info("Successfully queried #{vcf['source']}")
+        @@log.info("Creating index file for #{vcf['source']}...")
+        `bcftools index --force --tbi #{tmp_source_vcf}`
+        @@log.info("Done creating index file")
+
+        # Store tmp file name (filename) and the original VCF that the data came from (parent)
+        tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
       end
     end
 

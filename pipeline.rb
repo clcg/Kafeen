@@ -30,7 +30,7 @@ cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                    clinical_labels: CONFIG['clinical_labels'])
 
 # Add HGVS notation (using ASAP)
-cmd.add_asap(vcf_file: "GJB2.vcf.gz",
+cmd.add_asap(vcf_file: cmd.add_predictions_result,
              out_file_prefix: FILE_PREFIX,
              asap_path: CONFIG['third_party']['asap']['path'],
              ref_flat: CONFIG['third_party']['asap']['ref_flat'],
