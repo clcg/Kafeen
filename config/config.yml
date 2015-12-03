@@ -94,7 +94,7 @@ annotation_files:
       - 'HGMD_PMID'        # PubMed ID(s)
   g1000:
     source: '1000Genomes'
-    filename: 'data/hg19_1000Gp3_Oct2014.MORL.vcf.gz'
+    filename: 'data/hg19_1000Gp3_Oct2014.chr1-chr22.MORL.vcf.gz'
     fields:
       - '1KG_AFR_AC' # African American alt allele counts
       - '1KG_AFR_AN' # African American ref allele count
