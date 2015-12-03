@@ -104,6 +104,7 @@ class Command
              --remove '#{fields}' \
              --regions-file '#{bed_file}' \
              --exclude 'TYPE=\"other\"' \
+             --output-type u \
              #{vcf['filename']} \
            | bcftools norm \
                --multiallelics '-' \
@@ -123,6 +124,7 @@ class Command
           "bcftools view \
              --regions-file '#{bed_file}' \
              --exclude 'TYPE=\"other\"' \
+             --output-type u \
              #{vcf['filename']} \
            | bcftools norm \
                --multiallelics '-' \
@@ -988,6 +990,7 @@ class Command
     # Re-header
 #    `bcftools reheader \
 #       --header #{tmp_header_file} \
+#       --output-type u \
 #       #{vcf_file} \
 #     | bcftools view \
 #         --output-type z \
