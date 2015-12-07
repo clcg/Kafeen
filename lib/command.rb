@@ -692,7 +692,7 @@ class Command
             @@log.debug("- Pathogenicity is based on expert curation")
             # ^Check for expert-curated pathogenicity
             final[:pathogenicity] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
-            final[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PATHOGENICITY=([^;\t]*)/).flatten[0].to_s
+            final[:diseases] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_DISEASE=([^;\t]*)/).flatten[0].to_s
             final[:pmids] = vcf_cols[7].scan(/(?:^|[\t;])(?:MORL|CURATED)_PMID=([^;\t]*)/).flatten[0].to_s
             final[:source] = "Expert-curated"
             final[:reason] = "This variant has been expertly curated."
