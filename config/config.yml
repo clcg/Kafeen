@@ -116,7 +116,7 @@ annotation_files:
       - '1KG_ALL_AF' # Total allele frequency
   morl:
     source: 'MORL'
-    filename: 'data/hg19_DVD_ExpertCurations_20150924.MORL.vcf.gz'
+    filename: 'data/hg19_DVD_ExpertCurations_20151207.MORL.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
     source: 'OtoSCOPE'
