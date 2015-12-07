@@ -18,7 +18,7 @@ require 'yaml'
 CONFIG = YAML.load_file(File.join('config', 'config.yml'))
 
 # Verify required utilities are in $PATH
-utils = ['bcftools', 'tabix', 'bgzip']
+utils = ['bcftools', 'tabix', 'bgzip', 'sort', 'java']
 utils.each do |util|
   if `which #{util} 2> /dev/null`.empty?
     # Print to stderr
