@@ -58,6 +58,7 @@ class Command
     
     File.open(genes_file).each_line do |gene|
       gene.chomp!
+      @@log.debug("Retrieving gene region for #{gene}...")
     
       # Get gene region
       result = f_regions.grep(/([^a-zA-Z0-9-]|^)#{gene}([^a-zA-Z0-9-]|$)/)
@@ -65,6 +66,8 @@ class Command
       # Print result
       if !result.empty?
         f_out.puts result
+      else
+        @@log.error("No matching HGNC symbol for #{gene}")
       end
     
       f_regions.rewind # reset file pointer
@@ -188,18 +191,22 @@ class Command
   # Take genes from BED file and add to VCF file
   ##
   def add_genes(bed_file:, vcf_file:, out_file_prefix:)
+    tmp_output_file = "#{out_file_prefix}.tmp.vcf.gz"
+    @@log.info("Adding gene annotations to #{tmp_output_file}")
     # Prepare header file
     header_file = "#{out_file_prefix}.header.tmp.txt"
     header_line = '##INFO=<ID=GENE,Number=1,Type=String,Description="HGNC gene symbol">'
     File.open(header_file, 'w') {|f| f.write(header_line) }
 
     # Prepare BED file using bgzip and tabix
-    `bgzip -c #{bed_file} > #{bed_file}.tmp.gz`
+    @@log.debug("Creating tmp compressed BED file #{tmp_output_file}...")
+    `sort -u -k1,1 -k2,2n #{bed_file} | bgzip -c > #{bed_file}.tmp.gz`
+    @@log.debug("Compressed tmp BED file written to #{tmp_output_file}.tmp.gz...")
+    @@log.debug("Creating tmp index file for #{tmp_output_file}.tmp.gz...")
     `tabix -fp bed #{bed_file}.tmp.gz`
+    @@log.debug("Done creating tmp index file...")
 
     # Add genes to VCF file
-    tmp_output_file = "#{out_file_prefix}.tmp.vcf.gz"
-    @@log.info("Adding gene annotations to #{tmp_output_file}")
     `bcftools annotate \
        --annotations #{bed_file}.tmp.gz \
        --columns CHROM,FROM,TO,GENE \
