@@ -467,6 +467,7 @@ class Command
 
   def add_asap(vcf_file:, out_file_prefix:, asap_path:, ref_flat:, ref_seq_ali:, fasta:)
     # Set INFO tags
+    @asap_variant_tag = 'ASAP_VARIANT'
     @asap_hgvs_c_tag = 'ASAP_HGVS_C'
     @asap_hgvs_p_tag = 'ASAP_HGVS_P'
     @asap_locale_tag = 'ASAP_LOCALE'
@@ -511,10 +512,10 @@ class Command
         # Parse ASAP output
         fields = line.split("\t", -1)
 
-        # Print: chr, pos, ref, alt, HGVS_c, HGVS_p, locale, impact
+        # Print: CHROM, POS, REF, ALT, ASAP_variant, HGVS_c, HGVS_p, locale, impact
         # -- Do not print error records
         if !fields[5].include?("ERROR_")
-          f.puts [fields[1..4], fields[6..7], fields[10], fields[12]].flatten.join("\t")
+          f.puts [fields[1..4], fields[0], fields[6..7], fields[10], fields[12]].flatten.join("\t")
         end
       end
     end # <-- End writing output file
@@ -539,6 +540,7 @@ class Command
       @@log.info("Creating VCF header file...")
       tmp_vcf_header = "#{out_file_prefix}.header.tmp.txt"
       header = [
+        "##INFO=<ID=#{@asap_variant_tag},Number=1,Type=String,Description=\"ASAP-style variant notation\">",
         "##INFO=<ID=#{@asap_hgvs_c_tag},Number=1,Type=String,Description=\"HGVS cDNA annotation according to ASAP\">",
         "##INFO=<ID=#{@asap_hgvs_p_tag},Number=1,Type=String,Description=\"HGVS protein annotation according to ASAP\">",
         "##INFO=<ID=#{@asap_locale_tag},Number=1,Type=String,Description=\"Variant locale (e.g. exon, intron, etc.) according to ASAP\">",
@@ -553,7 +555,7 @@ class Command
       @@log.info("Annotating VCF with ASAP output...")
       `bcftools annotate \
          --annotations #{tmp_asap_output}.gz \
-         --columns CHROM,POS,REF,ALT,#{@asap_hgvs_c_tag},#{@asap_hgvs_p_tag},#{@asap_locale_tag},#{@asap_function_tag} \
+         --columns CHROM,POS,REF,ALT,#{@asap_variant_tag},#{@asap_hgvs_c_tag},#{@asap_hgvs_p_tag},#{@asap_locale_tag},#{@asap_function_tag} \
          --header-lines #{tmp_vcf_header} \
          --output #{tmp_output_vcf} \
          --output-type z \
