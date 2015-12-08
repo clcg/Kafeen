@@ -445,8 +445,8 @@ class Command
         end
       end
       pos += 1
-    elsif ref.length > 1 && (alt.length == 1 || alt.length > 1)
-      # DELETION or DELETION / INSERTION
+    elsif ref.length > 1 && alt.length == 1
+      # DELETION
       # Remove redundant nucleotides from beginning of sequences
       alt.length.times do |i|
         if ref.match(/^#{alt[0..-1-i]}/)
@@ -457,8 +457,8 @@ class Command
       end
       pos += 1
     else
-      # No match
-      # -- DO NOTHING
+      # DELETION / INSERTION or no match
+      # -- DO NOTHING (this is not a mistake; this is how ASAP actually works)
     end
     ref = '-' if ref.empty?
     alt = '-' if alt.empty?
@@ -513,9 +513,11 @@ class Command
         fields = line.split("\t", -1)
 
         # Print: CHROM, POS, REF, ALT, ASAP_variant, HGVS_c, HGVS_p, locale, impact
-        # -- Do not print error records
         if !fields[5].include?("ERROR_")
           f.puts [fields[1..4], fields[0], fields[6..7], fields[10], fields[12]].flatten.join("\t")
+        else
+          # If error, only print: CHROM, POS, REF, ALT, ASAP_variant
+          f.puts [fields[1..4], fields[0], '', '', '', ''].flatten.join("\t")
         end
       end
     end # <-- End writing output file
