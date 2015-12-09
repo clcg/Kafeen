@@ -444,6 +444,7 @@ class Command
           break
         end
       end
+      ref = '-' if ref.length == 1
       pos += 1
     elsif ref.length > 1 && alt.length == 1
       # DELETION
@@ -455,10 +456,11 @@ class Command
           break
         end
       end
+      alt = '-' if alt.length == 1
       pos += 1
     else
-      # DELETION / INSERTION or no match
-      # -- DO NOTHING (this is not a mistake; this is how ASAP actually works)
+      # DELETION/INSERTION or no match
+      # -- DO NOTHING
     end
     ref = '-' if ref.empty?
     alt = '-' if alt.empty?
