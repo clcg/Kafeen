@@ -14,7 +14,7 @@ clinical_labels:
   pred_benign: 'Likely benign'
 
 # Gene regions reference file
-gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.bed'
+gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v2.bed'
 
 # VCF annotation data files
 annotation_files:
@@ -84,6 +84,9 @@ annotation_files:
       - 'ExAC_SAS_AC' # South Asian alt allele counts
       - 'ExAC_SAS_AN' # South Asian ref allele count
       - 'ExAC_SAS_AF' # South Asian allele frequency
+      - 'ExAC_ALL_AC' # Total alt allele counts
+      - 'ExAC_ALL_AN' # Total allele counts
+      - 'ExAC_ALL_AF' # Total allele frequency
   hgmd:
     source: 'HGMD'
     filename: 'data/hg19_HGMD_2015r2.MORL.vcf.gz'
@@ -116,7 +119,7 @@ annotation_files:
       - '1KG_ALL_AF' # Total allele frequency
   morl:
     source: 'MORL'
-    filename: 'data/hg19_DVD_ExpertCurations_20151207.MORL.vcf.gz'
+    filename: 'data/hg19_DVD_ExpertCurations_20151215.MORL.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
     source: 'OtoSCOPE'
