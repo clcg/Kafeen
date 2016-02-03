@@ -13,6 +13,7 @@ String.include CoreExtensions::String::Vcf
 class Command
   # Result file paths
   attr_reader :genes2regions_result
+  attr_reader :genes2regions_merged_result
   attr_reader :regions2variants_result
   attr_reader :add_genes_result
   attr_reader :add_predictions_result
@@ -59,7 +60,7 @@ class Command
     # Set output file
     @genes2regions_result = "#{out_file_prefix}.gene_regions.bed"
     f_out = File.open(@genes2regions_result, 'w')
-    
+
     File.open(genes_file).each_line do |gene|
       gene.chomp!
       @@log.debug("Retrieving gene region for #{gene}...")
@@ -78,7 +79,19 @@ class Command
     end
     f_regions.close
     f_out.close
+
+    # Create a temporary merged regions file
+    @@log.info("Merging regions to use for querying...")
+    @genes2regions_merged_result = "#{out_file_prefix}.gene_regions.merged.bed"
+    tmp_sorted_bed = "#{out_file_prefix}.gene_regions.sorted.tmp.bed"
+    `sort -k1,1 -k2,2n #{@genes2regions_result} > #{tmp_sorted_bed}`
+    `bedtools merge -i #{tmp_sorted_bed} > #{@genes2regions_merged_result}`
+
+    # Overwrite original .bed file with sorted .bed file
+    File.rename(tmp_sorted_bed, @genes2regions_result)
+
     @@log.info("Gene regions written to #{@genes2regions_result}")
+    @@log.info("Merged regions written to #{@genes2regions_merged_result}")
   end
 
   ##
@@ -111,16 +124,15 @@ class Command
              --remove '#{fields}' \
              --regions-file '#{bed_file}' \
              --exclude 'TYPE=\"other\"' \
-             --output-type u \
-             #{vcf['filename']} \
-           | bcftools norm \
-               --multiallelics '-' \
-               --output-type z \
-               --output #{tmp_source_vcf}"
+             --output-type z \
+             --output #{tmp_source_vcf} \
+             #{vcf['filename']}"
         )
-        stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
+
+        stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
         if !stderr.empty?
           @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
+          @@log.debug("bcftools error is: #{stderr}")
         end
       end
 
@@ -131,20 +143,18 @@ class Command
           "bcftools view \
              --regions-file '#{bed_file}' \
              --exclude 'TYPE=\"other\"' \
-             --output-type u \
-             #{vcf['filename']} \
-           | bcftools norm \
-               --multiallelics '-' \
-               --output-type z \
-               --output #{tmp_source_vcf}"
+             --output-type z \
+             --output-file #{tmp_source_vcf} \
+             #{vcf['filename']}"
         )
-        stderr = stderr.sub(/^Lines total\/modified\/skipped.*/, '').strip # remove unnecessary "error"
+        stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
       end
 
       # Index the results file...
       if !stderr.empty?
         # ERROR
         @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
+        @@log.debug("bcftools error is: #{stderr}")
       else
         # SUCCESS -- create index file
         @@log.info("Successfully queried #{vcf['source']}")
@@ -170,8 +180,8 @@ class Command
     @@log.info("Merging results...")
     `bcftools merge \
        --merge none \
-       --output #{@regions2variants_result} \
        --output-type z \
+       --output #{@regions2variants_result} \
        #{files_to_merge.join(' ')}`
     @@log.info("Done merging results")
 
@@ -204,7 +214,7 @@ class Command
 
     # Prepare BED file using bgzip and tabix
     @@log.debug("Creating tmp compressed BED file #{tmp_output_file}...")
-    `sort -u -k1,1 -k2,2n #{bed_file} | bgzip -c > #{bed_file}.tmp.gz`
+    `sort -u -k1,1 -k2,2n -k3,3n #{bed_file} | bgzip -c > #{bed_file}.tmp.gz`
     @@log.debug("Compressed tmp BED file written to #{tmp_output_file}.tmp.gz...")
     @@log.debug("Creating tmp index file for #{tmp_output_file}.tmp.gz...")
     `tabix -fp bed #{bed_file}.tmp.gz`

@@ -10,7 +10,7 @@ cmd.genes2regions(genes_file: F_IN,
                   out_file_prefix: FILE_PREFIX)
 
 # Get variants from gene regions
-cmd.regions2variants(bed_file: cmd.genes2regions_result,
+cmd.regions2variants(bed_file: cmd.genes2regions_merged_result,
                      vcf_files: CONFIG['annotation_files'],
                      out_file_prefix: FILE_PREFIX)
 
@@ -22,7 +22,7 @@ cmd.add_genes(bed_file: cmd.genes2regions_result,
 # Annotate with dbNSFP
 cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                    vcf_file: cmd.add_genes_result,
-                   bed_file: cmd.genes2regions_result,
+                   bed_file: cmd.genes2regions_merged_result,
                    out_file_prefix: FILE_PREFIX,
                    clinical_labels: CONFIG['clinical_labels'])
 

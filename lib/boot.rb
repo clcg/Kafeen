@@ -40,7 +40,7 @@ else
 end
 
 # Verify required utilities are in $PATH
-utils = ['bcftools', 'tabix', 'bgzip', 'sort', 'java']
+utils = ['bcftools', 'tabix', 'bgzip', 'sort', 'java', 'bedtools']
 utils.each do |util|
   if `which #{util} 2> /dev/null`.empty?
     # Print to stderr
