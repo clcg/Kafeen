@@ -2,9 +2,6 @@
 
 require_relative File.join('lib', 'boot.rb')
 
-F_IN = ARGV[0]
-FILE_PREFIX = F_IN.sub(/#{File.extname(F_IN)}/, '')
-
 cmd = Command.new(log_level: 'info')
 
 # Convert gene names to gene regions
