@@ -18,9 +18,9 @@ gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v2.bed'
 
 # VCF annotation data files
 annotation_files:
-  clinvar: 
+  clinvar:
     source: 'ClinVar'
-    filename: 'data/hg19_ClinVar_20151102.MORL.vcf.gz'
+    filename: 'data/hg19_ClinVar_20151130.MORL.LA-norm.vcf.gz'
     fields:
       - 'CLINVAR_CLNSIG'      # Clinical significance
       - 'CLINVAR_DISEASE'     # Clinical disease name
@@ -34,7 +34,7 @@ annotation_files:
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
     source: 'dbNSFP3.0'
-    filename: 'data/hg19_dbNSFP3.0.MORL.bcf.gz'
+    filename: 'data/hg19_dbNSFP3.0.MORL.LA-norm.bcf.gz'
     fields:
       - 'SIFT_SCORE'
       - 'SIFT_PRED'
@@ -48,7 +48,7 @@ annotation_files:
       - 'PHYLOP20WAY_MAMMALIAN'
   evs:
     source: 'EVS6500SIv2'
-    filename: 'data/hg19_ESP6500SIv2.MORL.vcf.gz'
+    filename: 'data/hg19_ESP6500SIv2.MORL.LA-norm.vcf.gz'
     fields:
       - 'EVS_EA_AC'  # European American alt allele counts
       - 'EVS_EA_AN'  # European American allele counts
@@ -61,7 +61,7 @@ annotation_files:
       - 'EVS_ALL_AF' # Total allele frequency
   exac:
     source: 'ExAC'
-    filename: 'data/hg19_ExAC_r0.3.MORL.vcf.gz'
+    filename: 'data/hg19_ExAC_r0.3.MORL.LA-norm.vcf.gz'
     fields:
       - 'ExAC_AFR_AC' # African American alt allele counts
       - 'ExAC_AFR_AN' # African American ref allele count
@@ -89,15 +89,16 @@ annotation_files:
       - 'ExAC_ALL_AF' # Total allele frequency
   hgmd:
     source: 'HGMD'
-    filename: 'data/hg19_HGMD_2015r2.MORL.vcf.gz'
+    filename: 'data/hg19_HGMD_2015r4.MORL.LA-norm.vcf.gz'
     fields:
       - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
       - 'HGMD_DISEASE'     # Disease(s)
       - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
       - 'HGMD_PMID'        # PubMed ID(s)
+      - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
     source: '1000Genomes'
-    filename: 'data/hg19_1000Gp3_Oct2014.chr1-chr22.MORL.vcf.gz'
+    filename: 'data/hg19_1000Gp3_Aug2015.MORL.LA-norm.bcf.gz'
     fields:
       - '1KG_AFR_AC' # African American alt allele counts
       - '1KG_AFR_AN' # African American ref allele count
