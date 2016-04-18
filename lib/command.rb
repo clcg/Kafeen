@@ -66,7 +66,7 @@ class Command
       @@log.debug("Retrieving gene region for #{gene}...")
     
       # Get gene region
-      result = f_regions.grep(/([^a-zA-Z0-9-]|^)#{gene}([^a-zA-Z0-9-]|$)/)
+      result = f_regions.grep(/([^a-zA-Z0-9-]|^)#{Regexp.escape(URI.escape(gene, ';,= '))}([^a-zA-Z0-9-]|$)/)
     
       # Print result
       if !result.empty?
@@ -116,6 +116,15 @@ class Command
         fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
       end
 
+      # Remove ID column as well (except for dbSNP)
+      if key != 'dbsnp'
+        if fields != '*'
+          fields = "ID,#{fields}"
+        else
+          fields = "ID"
+        end
+      end
+
       # Query...
       @@log.info("Querying #{vcf['source']}...")
       if fields != '*'
@@ -123,7 +132,7 @@ class Command
           "bcftools annotate \
              --remove '#{fields}' \
              --regions-file '#{bed_file}' \
-             --exclude 'TYPE=\"other\"' \
+             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
              --output-type z \
              --output #{tmp_source_vcf} \
              #{vcf['filename']}"
@@ -142,7 +151,7 @@ class Command
         stdout, stderr = Open3.capture3(
           "bcftools view \
              --regions-file '#{bed_file}' \
-             --exclude 'TYPE=\"other\"' \
+             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
              --output-type z \
              --output-file #{tmp_source_vcf} \
              #{vcf['filename']}"
@@ -173,7 +182,7 @@ class Command
       next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
       files_to_merge << tmp_vcf['filename']
     end
-    files_to_merge << tmp_vcfs['dbsnp']['filename']
+#    files_to_merge << tmp_vcfs['dbsnp']['filename']
 
     # Merge VCFs...
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
@@ -252,8 +261,8 @@ class Command
   ##
   def add_predictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
     # Set custom VCF tags to be added to output
-    @gerp_pred_tag = "GERP_PRED"
-    @phylop20way_mammalian_pred_tag = "PHYLOP20WAY_MAMMALIAN_PRED"
+    @gerp_pred_tag = "DBNSFP_GERP_PRED"
+    @phylop20way_mammalian_pred_tag = "DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED"
     @num_path_preds_tag = "NUM_PATH_PREDS"
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
@@ -294,11 +303,11 @@ class Command
            f.puts "##INFO=<ID=#{@final_pred_tag},Number=.,Type=String,Description=\"Final prediction consensus based on majority vote of prediction scores\">"
 
            # Add GERP++ prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'GERP_RS' }
+           if dbnsfp_file['fields'].any?{ |e| e == 'DBNSFP_GERP_RS' }
              f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Add phyloP20way mammalian prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'PHYLOP20WAY_MAMMALIAN' }
+           if dbnsfp_file['fields'].any?{ |e| e == 'DBNSFP_PHYLOP20WAY_MAMMALIAN' }
              f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Print header (i.e. "CHROM  POS  ID ...")
@@ -311,7 +320,7 @@ class Command
            output = {}
            output[:total_num_preds] = 0
            output[:num_path_preds] = 0
-           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^GERP_RS$|^PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
+           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^DBNSFP_GERP_RS$|^DBNSFP_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
              # Get all predictions for this algorithm
              match = vcf_row.get_vcf_field(field)
 
@@ -324,23 +333,23 @@ class Command
              # No data for this algorithm -- skip it
              next if preds.all? { |pred| pred == '.' || pred == 'U' }
                
-             if field == 'SIFT_PRED'
+             if field == 'DBNSFP_SIFT_PRED'
                # SIFT prediction
                output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
                output[:total_num_preds] += 1
-             elsif field == 'POLYPHEN2_HDIV_PRED'
+             elsif field == 'DBNSFP_POLYPHEN2_HDIV_PRED'
                # Polyphen2 (HDIV) prediction
                output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
                output[:total_num_preds] += 1
-             elsif field == 'LRT_PRED'
+             elsif field == 'DBNSFP_LRT_PRED'
                # LRT prediction
                output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
                output[:total_num_preds] += 1
-             elsif field == 'MUTATIONTASTER_PRED'
+             elsif field == 'DBNSFP_MUTATIONTASTER_PRED'
                # MutationTaster prediction
                output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
                output[:total_num_preds] += 1
-             elsif field == 'GERP_RS'
+             elsif field == 'DBNSFP_GERP_RS'
                # GERP++ prediction
                if preds.any? { |pred| pred.to_f > 0.0 }
                  # Conserved
@@ -351,7 +360,7 @@ class Command
                  vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
                end
                output[:total_num_preds] += 1
-             elsif field == 'PHYLOP20WAY_MAMMALIAN'
+             elsif field == 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
                # phyloP20way mammalian prediction
                if preds.any? { |pred| pred.to_f >= 0.95 }
                  # Conserved
@@ -529,7 +538,8 @@ class Command
         fields = line.split("\t", -1)
 
         # Print: CHROM, POS, REF, ALT, ASAP_variant, HGVS_c, HGVS_p, locale, impact
-        if !fields[5].include?("ERROR_")
+        #if !fields[5].include?("ERROR_")
+        if !line.include?("ERROR_")
           f.puts [fields[1..4], fields[0], fields[6..7], fields[10], fields[12]].flatten.join("\t")
         else
           # If error, only print: CHROM, POS, REF, ALT, ASAP_variant
@@ -861,8 +871,8 @@ class Command
                 final[:diseases] = hgmd[:diseases]
                 final[:source] = "ClinVar/HGMD mostly agree"
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
-                final[:reason] = "ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\""
-                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant '#{clinvar[:worst_pathogenicity]}', the consensus of the literature is that the variant is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 0
               elsif (clinvar[:worst_pathogenicity] == clinical_labels['benign'] && hgmd[:pathogenicity] == clinical_labels['likely_benign']) || (clinvar[:worst_pathogenicity] == clinical_labels['likely_benign'] && hgmd[:pathogenicity] == clinical_labels['benign'])
                 # ClinVar says "Benign", and HGMD says "Likely benign" *OR* vice versa
@@ -873,8 +883,8 @@ class Command
                 final[:diseases] = '.'
                 final[:source] = "ClinVar/HGMD mostly agree"
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
-                final[:reason] = "ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\""
-                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant '#{clinvar[:worst_pathogenicity]}', the consensus of the literature is that the variant is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 0
               else
                 # ClinVar and HGMD totally disagree
@@ -884,8 +894,8 @@ class Command
                 final[:pathogenicity] = clinical_labels['unknown']
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
                 final[:source] = "ClinVar/HGMD"
-                final[:reason] = "ClinVar/HGMD conflict with each other"
-                final[:comments] = "Pathogenicity cannot accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar determines this variant to be \"#{clinvar[:worst_pathogenicity]}\" while the consensus of the literature seems to be that it is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity cannot accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar determines this variant to be '#{clinvar[:worst_pathogenicity]}' while the consensus of the literature seems to be that it is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 1
               end
             else
@@ -895,6 +905,7 @@ class Command
               final[:pathogenicity] = clinical_labels['unknown']
               final[:source] = "."
               final[:reason] = "Not enough information"
+              final[:comments] = "This variant is a VUS because it does not have enough information."
             end
           elsif !(match = vcf_cols[7].get_vcf_field(@final_pred_tag)).empty? && match != '.'
             @@log.debug("- Pathogenicity is based on predictions from dbNSFP")
@@ -906,7 +917,7 @@ class Command
               final[:source] = '.'
               final[:pmids] = '.'
               final[:reason] = "Not enough information"
-              final[:comments] = '.'
+              final[:comments] = "This variant is a VUS because it does not have enough information."
               @@log.debug("- Not enough predictions")
             else
               # ^Set final pathogenicity as predicted pathogenicity
@@ -916,7 +927,7 @@ class Command
               final[:pmids] = '.'
               if !(num_path_preds = vcf_cols[7].get_vcf_field(@num_path_preds_tag)).empty?
                 # Get pathogenic prediction fraction
-                if num_path_preds != '.' && num_path_preds != '0'
+                if num_path_preds != '.'
                   total_num_preds = vcf_cols[7].get_vcf_field(@total_num_preds_tag)
                   final[:reason] = "#{num_path_preds}/#{total_num_preds} pathogenic"
                   final[:comments] = "Pathogenicity is based on prediction data only. #{num_path_preds} out of #{total_num_preds} predictions were pathogenic."
@@ -931,10 +942,10 @@ class Command
             end
           else
             # Unknown significance
-            @@log.debug("- This variant is a VUS because it does not have enough info")
+            @@log.debug("- This variant is a VUS because it does not have enough information.")
             final[:pathogenicity] = clinical_labels['unknown']
             final[:reason] = "Not enough information"
-            final[:comments] = "This variant is a VUS because it does not have enough info"
+            final[:comments] = "This variant is a VUS because it does not have enough information."
           end
   
           # Remove illegal characters and set all empty values to '.'

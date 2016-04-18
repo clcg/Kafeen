@@ -14,13 +14,13 @@ clinical_labels:
   pred_benign: 'Likely benign'
 
 # Gene regions reference file
-gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v2.bed'
+gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v4.bed'
 
 # VCF annotation data files
 annotation_files:
-  clinvar:
+  clinvar: 
     source: 'ClinVar'
-    filename: 'data/hg19_ClinVar_20151130.MORL.LA-norm.vcf.gz'
+    filename: 'data/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
     fields:
       - 'CLINVAR_CLNSIG'      # Clinical significance
       - 'CLINVAR_DISEASE'     # Clinical disease name
@@ -29,26 +29,26 @@ annotation_files:
       - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
-    source: 'dbSNP142'
-    filename: 'data/hg19_SNP142.vcf.gz'
+    source: 'dbSNP'
+    filename: 'data/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
-    source: 'dbNSFP3.0'
-    filename: 'data/hg19_dbNSFP3.0.MORL.LA-norm.bcf.gz'
+    source: 'dbNSFP'
+    filename: 'data/hg19_dbNSFP_v3.0.MORL.LA-norm.bcf.gz'
     fields:
-      - 'SIFT_SCORE'
-      - 'SIFT_PRED'
-      - 'POLYPHEN2_HDIV_SCORE'
-      - 'POLYPHEN2_HDIV_PRED'
-      - 'LRT_SCORE'
-      - 'LRT_PRED'
-      - 'MUTATIONTASTER_SCORE'
-      - 'MUTATIONTASTER_PRED'
-      - 'GERP_RS'
-      - 'PHYLOP20WAY_MAMMALIAN'
+      - 'DBNSFP_SIFT_SCORE'
+      - 'DBNSFP_SIFT_PRED'
+      - 'DBNSFP_POLYPHEN2_HDIV_SCORE'
+      - 'DBNSFP_POLYPHEN2_HDIV_PRED'
+      - 'DBNSFP_LRT_SCORE'
+      - 'DBNSFP_LRT_PRED'
+      - 'DBNSFP_MUTATIONTASTER_SCORE'
+      - 'DBNSFP_MUTATIONTASTER_PRED'
+      - 'DBNSFP_GERP_RS'
+      - 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
   evs:
-    source: 'EVS6500SIv2'
-    filename: 'data/hg19_ESP6500SIv2.MORL.LA-norm.vcf.gz'
+    source: 'ESP6500'
+    filename: 'data/hg19_ESP6500SI_v2.MORL.LA-norm.snps.vcf.gz'
     fields:
       - 'EVS_EA_AC'  # European American alt allele counts
       - 'EVS_EA_AN'  # European American allele counts
@@ -63,33 +63,33 @@ annotation_files:
     source: 'ExAC'
     filename: 'data/hg19_ExAC_r0.3.MORL.LA-norm.vcf.gz'
     fields:
-      - 'ExAC_AFR_AC' # African American alt allele counts
-      - 'ExAC_AFR_AN' # African American ref allele count
-      - 'ExAC_AFR_AF' # African American allele frequency
-      - 'ExAC_AMR_AC' # American alt allele counts
-      - 'ExAC_AMR_AN' # American ref allele count
-      - 'ExAC_AMR_AF' # American allele frequency
-      - 'ExAC_EAS_AC' # East Asian alt allele counts
-      - 'ExAC_EAS_AN' # East Asian ref allele count
-      - 'ExAC_EAS_AF' # East Asian allele frequency
-      - 'ExAC_FIN_AC' # European (Finnish) alt allele counts
-      - 'ExAC_FIN_AN' # European (Finnish) ref allele count
-      - 'ExAC_FIN_AF' # European (Finnish) allele frequency
-      - 'ExAC_NFE_AC' # European (Non-Finnish) alt allele counts
-      - 'ExAC_NFE_AN' # European (Non-Finnish) ref allele count
-      - 'ExAC_NFE_AF' # European (Non-Finnish) allele frequency
-      - 'ExAC_OTH_AC' # Other alt allele counts
-      - 'ExAC_OTH_AN' # Other ref allele count
-      - 'ExAC_OTH_AF' # Other allele frequency
-      - 'ExAC_SAS_AC' # South Asian alt allele counts
-      - 'ExAC_SAS_AN' # South Asian ref allele count
-      - 'ExAC_SAS_AF' # South Asian allele frequency
-      - 'ExAC_ALL_AC' # Total alt allele counts
-      - 'ExAC_ALL_AN' # Total allele counts
-      - 'ExAC_ALL_AF' # Total allele frequency
+      - 'EXAC_AFR_AC' # African American alt allele counts
+      - 'EXAC_AFR_AN' # African American ref allele count
+      - 'EXAC_AFR_AF' # African American allele frequency
+      - 'EXAC_AMR_AC' # American alt allele counts
+      - 'EXAC_AMR_AN' # American ref allele count
+      - 'EXAC_AMR_AF' # American allele frequency
+      - 'EXAC_EAS_AC' # East Asian alt allele counts
+      - 'EXAC_EAS_AN' # East Asian ref allele count
+      - 'EXAC_EAS_AF' # East Asian allele frequency
+      - 'EXAC_FIN_AC' # European (Finnish) alt allele counts
+      - 'EXAC_FIN_AN' # European (Finnish) ref allele count
+      - 'EXAC_FIN_AF' # European (Finnish) allele frequency
+      - 'EXAC_NFE_AC' # European (Non-Finnish) alt allele counts
+      - 'EXAC_NFE_AN' # European (Non-Finnish) ref allele count
+      - 'EXAC_NFE_AF' # European (Non-Finnish) allele frequency
+      - 'EXAC_OTH_AC' # Other alt allele counts
+      - 'EXAC_OTH_AN' # Other ref allele count
+      - 'EXAC_OTH_AF' # Other allele frequency
+      - 'EXAC_SAS_AC' # South Asian alt allele counts
+      - 'EXAC_SAS_AN' # South Asian ref allele count
+      - 'EXAC_SAS_AF' # South Asian allele frequency
+      - 'EXAC_ALL_AC' # Total alt allele counts
+      - 'EXAC_ALL_AN' # Total allele counts
+      - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
     source: 'HGMD'
-    filename: 'data/hg19_HGMD_2015r4.MORL.LA-norm.vcf.gz'
+    filename: 'data/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v7_regions.dedup.vcf.gz'
     fields:
       - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
       - 'HGMD_DISEASE'     # Disease(s)
@@ -97,8 +97,8 @@ annotation_files:
       - 'HGMD_PMID'        # PubMed ID(s)
       - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
-    source: '1000Genomes'
-    filename: 'data/hg19_1000Gp3_Aug2015.MORL.LA-norm.bcf.gz'
+    source: '1KG'
+    filename: 'data/hg19_1000G_phase3v5a.MORL.LA-norm.DVD_v7_regions.dedup.vcf.gz'
     fields:
       - '1KG_AFR_AC' # African American alt allele counts
       - '1KG_AFR_AN' # African American ref allele count
@@ -120,7 +120,7 @@ annotation_files:
       - '1KG_ALL_AF' # Total allele frequency
   morl:
     source: 'MORL'
-    filename: 'data/hg19_DVD_ExpertCurations_20151215.MORL.vcf.gz'
+    filename: 'data/hg19_DVD_ExpertCurations_20160326.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
     source: 'OtoSCOPE'
