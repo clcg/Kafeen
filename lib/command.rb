@@ -132,7 +132,7 @@ class Command
           "bcftools annotate \
              --remove '#{fields}' \
              --regions-file '#{bed_file}' \
-             --exclude 'TYPE=\"other\"' \
+             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
              --output-type z \
              --output #{tmp_source_vcf} \
              #{vcf['filename']}"
@@ -151,7 +151,7 @@ class Command
         stdout, stderr = Open3.capture3(
           "bcftools view \
              --regions-file '#{bed_file}' \
-             --exclude 'TYPE=\"other\"' \
+             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
              --output-type z \
              --output-file #{tmp_source_vcf} \
              #{vcf['filename']}"
@@ -182,7 +182,7 @@ class Command
       next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
       files_to_merge << tmp_vcf['filename']
     end
-    files_to_merge << tmp_vcfs['dbsnp']['filename']
+#    files_to_merge << tmp_vcfs['dbsnp']['filename']
 
     # Merge VCFs...
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
