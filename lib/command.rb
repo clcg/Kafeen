@@ -871,8 +871,8 @@ class Command
                 final[:diseases] = hgmd[:diseases]
                 final[:source] = "ClinVar/HGMD mostly agree"
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
-                final[:reason] = "ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\""
-                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant '#{clinvar[:worst_pathogenicity]}', the consensus of the literature is that the variant is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 0
               elsif (clinvar[:worst_pathogenicity] == clinical_labels['benign'] && hgmd[:pathogenicity] == clinical_labels['likely_benign']) || (clinvar[:worst_pathogenicity] == clinical_labels['likely_benign'] && hgmd[:pathogenicity] == clinical_labels['benign'])
                 # ClinVar says "Benign", and HGMD says "Likely benign" *OR* vice versa
@@ -883,8 +883,8 @@ class Command
                 final[:diseases] = '.'
                 final[:source] = "ClinVar/HGMD mostly agree"
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
-                final[:reason] = "ClinVar says \"#{clinvar[:worst_pathogenicity]}\"/HGMD says \"#{hgmd[:pathogenicity]}\""
-                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant \"#{clinvar[:worst_pathogenicity]}\", the consensus of the literature is that the variant is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity is based on ClinVar submissions and the literature provided in PubMed. It is important to note that while ClinVar calls this variant '#{clinvar[:worst_pathogenicity]}', the consensus of the literature is that the variant is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 0
               else
                 # ClinVar and HGMD totally disagree
@@ -894,8 +894,8 @@ class Command
                 final[:pathogenicity] = clinical_labels['unknown']
                 final[:pmids] = (clinvar[:pmids] + ',' + hgmd[:pmids]).split(/\D+/).uniq.join(',')
                 final[:source] = "ClinVar/HGMD"
-                final[:reason] = "ClinVar/HGMD conflict with each other"
-                final[:comments] = "Pathogenicity cannot accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar determines this variant to be \"#{clinvar[:worst_pathogenicity]}\" while the consensus of the literature seems to be that it is \"#{hgmd[:pathogenicity]}\""
+                final[:reason] = "ClinVar says '#{clinvar[:worst_pathogenicity]}'/HGMD says '#{hgmd[:pathogenicity]}'"
+                final[:comments] = "Pathogenicity cannot accurately be determined at this time due to conflicts between ClinVar and the consensus of the literature provided in PubMed. ClinVar determines this variant to be '#{clinvar[:worst_pathogenicity]}' while the consensus of the literature seems to be that it is '#{hgmd[:pathogenicity]}'"
                 final[:clinvar_hgmd_conflict] = 1
               end
             else
@@ -905,6 +905,7 @@ class Command
               final[:pathogenicity] = clinical_labels['unknown']
               final[:source] = "."
               final[:reason] = "Not enough information"
+              final[:comments] = "This variant is a VUS because it does not have enough information."
             end
           elsif !(match = vcf_cols[7].get_vcf_field(@final_pred_tag)).empty? && match != '.'
             @@log.debug("- Pathogenicity is based on predictions from dbNSFP")
@@ -916,7 +917,7 @@ class Command
               final[:source] = '.'
               final[:pmids] = '.'
               final[:reason] = "Not enough information"
-              final[:comments] = '.'
+              final[:comments] = "This variant is a VUS because it does not have enough information."
               @@log.debug("- Not enough predictions")
             else
               # ^Set final pathogenicity as predicted pathogenicity
@@ -941,10 +942,10 @@ class Command
             end
           else
             # Unknown significance
-            @@log.debug("- This variant is a VUS because it does not have enough info")
+            @@log.debug("- This variant is a VUS because it does not have enough information.")
             final[:pathogenicity] = clinical_labels['unknown']
             final[:reason] = "Not enough information"
-            final[:comments] = "This variant is a VUS because it does not have enough info"
+            final[:comments] = "This variant is a VUS because it does not have enough information."
           end
   
           # Remove illegal characters and set all empty values to '.'
