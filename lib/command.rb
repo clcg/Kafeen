@@ -66,7 +66,7 @@ class Command
       @@log.debug("Retrieving gene region for #{gene}...")
     
       # Get gene region
-      result = f_regions.grep(/([^a-zA-Z0-9-]|^)#{gene}([^a-zA-Z0-9-]|$)/)
+      result = f_regions.grep(/([^a-zA-Z0-9-]|^)#{Regexp.escape(URI.escape(gene, ';,= '))}([^a-zA-Z0-9-]|$)/)
     
       # Print result
       if !result.empty?
