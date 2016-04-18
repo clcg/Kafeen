@@ -927,7 +927,7 @@ class Command
               final[:pmids] = '.'
               if !(num_path_preds = vcf_cols[7].get_vcf_field(@num_path_preds_tag)).empty?
                 # Get pathogenic prediction fraction
-                if num_path_preds != '.' && num_path_preds != '0'
+                if num_path_preds != '.'
                   total_num_preds = vcf_cols[7].get_vcf_field(@total_num_preds_tag)
                   final[:reason] = "#{num_path_preds}/#{total_num_preds} pathogenic"
                   final[:comments] = "Pathogenicity is based on prediction data only. #{num_path_preds} out of #{total_num_preds} predictions were pathogenic."
