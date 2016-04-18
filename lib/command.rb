@@ -538,7 +538,8 @@ class Command
         fields = line.split("\t", -1)
 
         # Print: CHROM, POS, REF, ALT, ASAP_variant, HGVS_c, HGVS_p, locale, impact
-        if !fields[5].include?("ERROR_")
+        #if !fields[5].include?("ERROR_")
+        if !line.include?("ERROR_")
           f.puts [fields[1..4], fields[0], fields[6..7], fields[10], fields[12]].flatten.join("\t")
         else
           # If error, only print: CHROM, POS, REF, ALT, ASAP_variant
