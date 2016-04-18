@@ -116,6 +116,15 @@ class Command
         fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
       end
 
+      # Remove ID column as well (except for dbSNP)
+      if key != 'dbsnp'
+        if fields != '*'
+          fields = "ID,#{fields}"
+        else
+          fields = "ID"
+        end
+      end
+
       # Query...
       @@log.info("Querying #{vcf['source']}...")
       if fields != '*'
