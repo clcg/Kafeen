@@ -261,8 +261,8 @@ class Command
   ##
   def add_predictions(dbnsfp_file:, vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
     # Set custom VCF tags to be added to output
-    @gerp_pred_tag = "GERP_PRED"
-    @phylop20way_mammalian_pred_tag = "PHYLOP20WAY_MAMMALIAN_PRED"
+    @gerp_pred_tag = "DBNSFP_GERP_PRED"
+    @phylop20way_mammalian_pred_tag = "DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED"
     @num_path_preds_tag = "NUM_PATH_PREDS"
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
@@ -303,11 +303,11 @@ class Command
            f.puts "##INFO=<ID=#{@final_pred_tag},Number=.,Type=String,Description=\"Final prediction consensus based on majority vote of prediction scores\">"
 
            # Add GERP++ prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'GERP_RS' }
+           if dbnsfp_file['fields'].any?{ |e| e == 'DBNSFP_GERP_RS' }
              f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Add phyloP20way mammalian prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'PHYLOP20WAY_MAMMALIAN' }
+           if dbnsfp_file['fields'].any?{ |e| e == 'DBNSFP_PHYLOP20WAY_MAMMALIAN' }
              f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Print header (i.e. "CHROM  POS  ID ...")
@@ -320,7 +320,7 @@ class Command
            output = {}
            output[:total_num_preds] = 0
            output[:num_path_preds] = 0
-           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^GERP_RS$|^PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
+           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^DBNSFP_GERP_RS$|^DBNSFP_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
              # Get all predictions for this algorithm
              match = vcf_row.get_vcf_field(field)
 
@@ -333,23 +333,23 @@ class Command
              # No data for this algorithm -- skip it
              next if preds.all? { |pred| pred == '.' || pred == 'U' }
                
-             if field == 'SIFT_PRED'
+             if field == 'DBNSFP_SIFT_PRED'
                # SIFT prediction
                output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
                output[:total_num_preds] += 1
-             elsif field == 'POLYPHEN2_HDIV_PRED'
+             elsif field == 'DBNSFP_POLYPHEN2_HDIV_PRED'
                # Polyphen2 (HDIV) prediction
                output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
                output[:total_num_preds] += 1
-             elsif field == 'LRT_PRED'
+             elsif field == 'DBNSFP_LRT_PRED'
                # LRT prediction
                output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
                output[:total_num_preds] += 1
-             elsif field == 'MUTATIONTASTER_PRED'
+             elsif field == 'DBNSFP_MUTATIONTASTER_PRED'
                # MutationTaster prediction
                output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
                output[:total_num_preds] += 1
-             elsif field == 'GERP_RS'
+             elsif field == 'DBNSFP_GERP_RS'
                # GERP++ prediction
                if preds.any? { |pred| pred.to_f > 0.0 }
                  # Conserved
@@ -360,7 +360,7 @@ class Command
                  vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
                end
                output[:total_num_preds] += 1
-             elsif field == 'PHYLOP20WAY_MAMMALIAN'
+             elsif field == 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
                # phyloP20way mammalian prediction
                if preds.any? { |pred| pred.to_f >= 0.95 }
                  # Conserved
