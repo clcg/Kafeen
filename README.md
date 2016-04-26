@@ -1,4 +1,4 @@
-# Cordova pipeline v2
+# Kafeen
 
 ******PLEASE NOTE THAT THIS README IS STILL VERY MUCH A WORK IN PROGRESS******
 
