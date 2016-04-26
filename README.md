@@ -7,30 +7,30 @@ The following INFO fields can be found in the output VCF file.
 
 ### ExAC fields:
 
-- **ExAC\_ALL\_AC** - Total number of alternate alleles in called genotypes
-- **ExAC\_ALL\_AN** - Total number of alleles in called genotypes
-- **ExAC\_ALL\_AF** - Allele frequency in the all populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_AFR\_AC** - African/African American alternate allele counts
-- **ExAC\_AFR\_AN** - African/African American allele counts
-- **ExAC\_AFR\_AF** - Allele frequency in the African/African American populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_AMR\_AC** - American alternate allele counts
-- **ExAC\_AMR\_AN** - American allele counts
-- **ExAC\_AMR\_AF** - Allele frequency in the American populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_EAS\_AC** - East Asian alternate allele counts
-- **ExAC\_EAS\_AN** - East Asian allele counts
-- **ExAC\_EAS\_AF** - Allele frequency in the East Asian populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_FIN\_AC** - Finnish alternate allele counts
-- **ExAC\_FIN\_AN** - Finnish allele counts
-- **ExAC\_FIN\_AF** - Allele frequency in the Finnish populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_NFE\_AC** - Non-Finnish European alternate allele counts
-- **ExAC\_NFE\_AN** - Non-Finnish European allele counts
-- **ExAC\_NFE\_AF** - Allele frequency in the Non-Finnish populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_OTH\_AC** - Other alternate allele counts
-- **ExAC\_OTH\_AN** - Other allele counts
-- **ExAC\_OTH\_AF** - Allele frequency in the Other populations calculated from AC and AN, in the range (0,1)
-- **ExAC\_SAS\_AC** - South Asian alternate allele counts
-- **ExAC\_SAS\_AN** - South Asian allele counts
-- **ExAC\_SAS\_AF** - Allele frequency in the South Asian populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_ALL\_AC** - Total number of alternate alleles in called genotypes
+- **EXAC\_ALL\_AN** - Total number of alleles in called genotypes
+- **EXAC\_ALL\_AF** - Allele frequency in the all populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_AFR\_AC** - African/African American alternate allele counts
+- **EXAC\_AFR\_AN** - African/African American allele counts
+- **EXAC\_AFR\_AF** - Allele frequency in the African/African American populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_AMR\_AC** - American alternate allele counts
+- **EXAC\_AMR\_AN** - American allele counts
+- **EXAC\_AMR\_AF** - Allele frequency in the American populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_EAS\_AC** - East Asian alternate allele counts
+- **EXAC\_EAS\_AN** - East Asian allele counts
+- **EXAC\_EAS\_AF** - Allele frequency in the East Asian populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_FIN\_AC** - Finnish alternate allele counts
+- **EXAC\_FIN\_AN** - Finnish allele counts
+- **EXAC\_FIN\_AF** - Allele frequency in the Finnish populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_NFE\_AC** - Non-Finnish European alternate allele counts
+- **EXAC\_NFE\_AN** - Non-Finnish European allele counts
+- **EXAC\_NFE\_AF** - Allele frequency in the Non-Finnish populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_OTH\_AC** - Other alternate allele counts
+- **EXAC\_OTH\_AN** - Other allele counts
+- **EXAC\_OTH\_AF** - Allele frequency in the Other populations calculated from AC and AN, in the range (0,1)
+- **EXAC\_SAS\_AC** - South Asian alternate allele counts
+- **EXAC\_SAS\_AN** - South Asian allele counts
+- **EXAC\_SAS\_AF** - Allele frequency in the South Asian populations calculated from AC and AN, in the range (0,1)
 
 ### EVS fields
 
