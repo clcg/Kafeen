@@ -11,14 +11,28 @@ require 'yaml'
 opts = Trollop::options do
   opt :config, "Configuration override file", :type => :string, :default => nil
   opt :output_prefix, "Prefix to use for output files", :type => :string, :default => nil
+  opt :test_vcf, "Use a pre-defined VCF to assert that Kafeen is still working okay", :default => false
 #  opt :debug, "Print debugging statements", :default => false
 end
 
 # Validate options
 Trollop::die :config, "must exist" unless File.exist?(opts[:config]) if opts[:config]
 
-# Set input file
-F_IN = ARGV[0]
+if ARGV.empty?
+  # Print help message if no args
+  Trollop::educate if ARGV.empty?
+elsif ARGV.length == 1
+  # Set input file
+  F_IN = ARGV[0]
+elsif ARGV.length == 2
+  # Set input files (.vcf, .vcf.gz, .bed, .bed.gz)
+  F_IN = ARGV.select { |f| f.match(/.+\.vcf(?:\.gz)?$/i) }.first  # Set VCF
+  F_BED = ARGV.select { |f| f.match(/.+\.bed(?:\.gz)?$/i) }.first # Set BED
+  raise ArgumentError, "Must supply .bed file" if F_BED.nil?
+else
+  # Too many arguments
+  raise ArgumentError, "Too many arguments"
+end
 
 # Load configuration file
 default_config = YAML.load_file(File.join('config', 'config.yml'))
