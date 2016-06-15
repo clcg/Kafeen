@@ -4,27 +4,45 @@ require_relative File.join('lib', 'boot.rb')
 
 cmd = Command.new(log_level: 'info')
 
-# Convert gene names to gene regions
-cmd.genes2regions(genes_file: F_IN,
-                  ref_file: CONFIG['gene_regions_ref_file'],
-                  out_file_prefix: FILE_PREFIX)
+if TEST_MODE
+  # Skip collecting variants if test mode not enabled...
+  # Set VCF and BED files that will be used for subsequent steps
+  if F_IN.match(/.+\.vcf$/i)
+    # Compress VCF if not compressed already
+    `bcftools view -O z -o "#{F_IN}.gz" "#{F_IN}"`
+    `bcftools index --force --tbi "#{F_IN}.gz"`
+  end
+  vcf_file = F_IN
+  bed_file = F_BED
+  merged_bed_file = F_BED
+else
+  # Convert gene names to gene regions
+  cmd.genes2regions(genes_file: F_IN,
+                    ref_file: CONFIG['gene_regions_ref_file'],
+                    out_file_prefix: FILE_PREFIX)
+  
+  # Get variants from gene regions
+  cmd.regions2variants(bed_file: cmd.genes2regions_merged_result,
+                       vcf_files: CONFIG['annotation_files'],
+                       out_file_prefix: FILE_PREFIX)
 
-# Get variants from gene regions
-cmd.regions2variants(bed_file: cmd.genes2regions_merged_result,
-                     vcf_files: CONFIG['annotation_files'],
-                     out_file_prefix: FILE_PREFIX)
+  # Set VCF and BED files that will be used for subsequent steps
+  vcf_file = cmd.regions2variants_result
+  bed_file = cmd.genes2regions_result
+  merged_bed_file = cmd.genes2regions_merged_result
+end
 
 # Add gene symbol to each record in VCF
-cmd.add_genes(bed_file: cmd.genes2regions_result,
-             vcf_file: cmd.regions2variants_result,
-             out_file_prefix: FILE_PREFIX)
+cmd.add_genes(bed_file: bed_file,
+              vcf_file: vcf_file,
+              out_file_prefix: FILE_PREFIX)
 
 # Annotate with dbNSFP
 cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
-                   vcf_file: cmd.add_genes_result,
-                   bed_file: cmd.genes2regions_merged_result,
-                   out_file_prefix: FILE_PREFIX,
-                   clinical_labels: CONFIG['clinical_labels'])
+                    vcf_file: cmd.add_genes_result,
+                    bed_file: merged_bed_file,
+                    out_file_prefix: FILE_PREFIX,
+                    clinical_labels: CONFIG['clinical_labels'])
 
 # Add HGVS notation (using ASAP)
 cmd.add_asap(vcf_file: cmd.add_predictions_result,
