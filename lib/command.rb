@@ -9,6 +9,7 @@ require './lib/core_extensions'
 
 # Monkey-patch the String class
 String.include CoreExtensions::String::Vcf
+String.include CoreExtensions::String::Colorize
 
 class Command
   # Result file paths
@@ -1110,8 +1111,6 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
       abort
     end
 
-    # TODO Remove this print statement and instead test each pair of values
-    # i.e. Compare FIELD to ASSERT_FIELD
     stdout.each_line do |line|
       fields = line.chomp.split("\t")
       puts line.chomp
