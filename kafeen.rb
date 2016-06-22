@@ -1,17 +1,34 @@
 #!/usr/bin/env ruby
 
 require_relative File.join('lib', 'boot.rb')
+require 'logger'
+require 'open3'
 
 cmd = Command.new(log_level: 'info')
+log = Logger.new(STDOUT)
 
 if TEST_MODE
   # Skip collecting variants if test mode not enabled...
   # Set VCF and BED files that will be used for subsequent steps
+  
+  # Compress VCF if not compressed already
   if F_IN.match(/.+\.vcf$/i)
-    # Compress VCF if not compressed already
-    `bcftools view -O z -o "#{F_IN}.gz" "#{F_IN}"`
-    `bcftools index --force --tbi "#{F_IN}.gz"`
+    stdout, stderr = Open3.capture3("bcftools view -O z -o '#{F_IN}.gz' '#{F_IN}'")
+    unless stderr.empty?
+      log.error("bcftools was not able to compress #{F_IN}...") 
+      log.error("bcftools error is: #{stderr}") 
+      abort
+    end
   end
+
+  # Create new index for VCF
+  stdout, stderr = Open3.capture3("bcftools index --force --tbi '#{F_IN}.gz'")
+  unless stderr.empty?
+    log.error("bcftools was not able to index #{F_IN}...") 
+    log.error("bcftools error is: #{stderr}") 
+    abort
+  end
+
   vcf_file = F_IN
   bed_file = F_BED
   merged_bed_file = F_BED
@@ -59,3 +76,9 @@ cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
                            enable_benign_star: CONFIG['enable_benign_star'])
 
 # TODO Re-header
+
+# Run tests
+if TEST_MODE
+  cmd.test(vcf_file: cmd.add_predictions_result,
+           out_file_prefix: FILE_PREFIX)
+end

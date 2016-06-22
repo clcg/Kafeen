@@ -1004,8 +1004,11 @@ class Command
     @@log.info("Done removing tmp files")
   end
 
+  ##
   # Cleanup header
+  #
   # NOTE: Do not use yet
+  ##
   def cleanup_header(vcf_file:, out_file_prefix:)
     @@log.info("Cleaning up VCF header...")
 
@@ -1066,5 +1069,60 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
 #    File.unlink(tmp_header_file) if File.exist?(tmp_header_file)
 #    File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
 #    @@log.info("Done removing tmp files")
+  end
+
+  ##
+  # Test
+  ##
+  def test(vcf_file:, out_file_prefix:)
+    # TODO Make 'assertions' a constant (e.g. 'ASSERTIONS')
+    assertions = [
+      'GENE',
+      'NUM_PATH_PREDS',
+      'TOTAL_NUM_PREDS',
+      'FINAL_PRED',
+      'DBNSFP_GERP_PRED',
+      'DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED',
+      'FINAL_PATHOGENICITY',
+      'FINAL_DISEASE',
+      'FINAL_PATHOGENICITY_SOURCE',
+      'FINAL_PMID',
+      'FINAL_PATHOGENICITY_REASON',
+      'FINAL_COMMENTS',
+    ]
+
+    fields = []
+    assertions.each do |a|
+      fields << "%INFO/#{a}"
+      fields << "%INFO/ASSERT_#{a}"
+    end
+    
+    stdout, stderr = Open3.capture3(
+      "bcftools query \
+         --format '#{fields.join('\t') + '\n'}' \
+         #{vcf_file}"
+    )
+
+    # Did bcftools produce an error?
+    unless stderr.empty?
+      @@log.error("bcftools was not able to compress #{F_IN}...") 
+      @@log.error("bcftools error is: #{stderr}") 
+      abort
+    end
+
+    # TODO Remove this print statement and instead test each pair of values
+    # i.e. Compare FIELD to ASSERT_FIELD
+    stdout.each_line do |line|
+      fields = line.chomp.split("\t")
+      puts line.chomp
+      # Compare field pairs
+      (0..(fields.length-1)).step(2) do |i|
+        if fields[i] == fields[i+1]
+          puts "PASS: #{fields[i]} -- #{fields[i+1]}"
+        else
+          puts "FAIL: #{fields[i]} -- #{fields[i+1]}"
+        end
+      end
+    end
   end
 end
