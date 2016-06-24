@@ -642,28 +642,6 @@ class Command
     final[:reason] = '.'
     final[:comments] = '.'
 
-    # Set ClinVar pathogenicity dictionary
-    clinvar_pathogenicity_map = {
-      '2' => clinical_labels['benign'],
-      '3' => clinical_labels['likely_benign'],
-      '4' => clinical_labels['likely_pathogenic'],
-      '5' => clinical_labels['pathogenic'],
-      'Benign' => clinical_labels['benign'],
-      'Likely benign' => clinical_labels['likely_benign'],
-      'Likely pathogenic' => clinical_labels['likely_pathogenic'],
-      'Pathogenic' => clinical_labels['pathogenic'],
-    }
-
-    # Clinical confidence/review weight
-    clinvar_confidence_weight = {
-      'not'    => 0,
-      'single' => 1,
-      'mult'   => 2,
-      'exp'    => 3,
-      'prof'   => 4,
-      'classified by multiple submitters' => 2,
-    }
-
     # Set HGMD pathogenicity dictionary
     hgmd_pathogenicity_map = {
       'DM'  => clinical_labels['pathogenic'], # Disease mutation
@@ -675,12 +653,6 @@ class Command
       'CNV' => clinical_labels['benign'],     # Copy number variation
       'R'   => clinical_labels['unknown'],    # Removed from HGMD
       ''    => ''                             # Nothing
-    }
-
-    # HGMD confidence weight
-    hgmd_confidence_weight = {
-      'Low'  => 1,
-      'High' => 2,
     }
 
     File.open(tmp_output_file, 'w') do |f|
