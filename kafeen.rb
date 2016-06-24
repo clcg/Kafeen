@@ -80,5 +80,6 @@ cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
 # Run tests
 if TEST_MODE
   cmd.test(vcf_file: cmd.add_predictions_result,
+           assertion_tags: CONFIG['test']['assertion_tags'],
            out_file_prefix: FILE_PREFIX)
 end

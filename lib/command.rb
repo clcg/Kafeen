@@ -1075,26 +1075,10 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
   ##
   # Test
   ##
-  def test(vcf_file:, out_file_prefix:)
-    # TODO Make 'assertions' a constant (e.g. 'ASSERTIONS')
-    assertions = [
-      'GENE',
-      'NUM_PATH_PREDS',
-      'TOTAL_NUM_PREDS',
-      'FINAL_PRED',
-      'DBNSFP_GERP_PRED',
-      'DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED',
-      'FINAL_PATHOGENICITY',
-      'FINAL_DISEASE',
-      'FINAL_PATHOGENICITY_SOURCE',
-      'FINAL_PMID',
-      'FINAL_PATHOGENICITY_REASON',
-      'FINAL_COMMENTS',
-    ]
-
+  def test(vcf_file:, out_file_prefix:, assertion_tags:)
     # Create bcftools query string
     fields = []
-    assertions.each do |a|
+    assertion_tags.each do |a|
       fields << "%INFO/#{a}"
       fields << "%INFO/ASSERT_#{a}"
     end
@@ -1122,7 +1106,7 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
       fields = line.chomp.split("\t")
       puts "- TESTING VARIANT: ".blue + fields[0..3].join("\t")
 
-      j = 0 # Set assertions iterator
+      j = 0 # Set assertion_tags iterator
 
       # Compare field pairs
       # ...Start from fields[4] in order to skip CHROM, POS, REF, ALT
@@ -1130,11 +1114,11 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
         total_num_tests += 1
         if fields[i] == fields[i+1]
           # PASS - fields are the same
-          puts "  - " + "PASS: ".green + "[#{assertions[j]}] #{URI.unescape(fields[i])} == #{URI.unescape(fields[i+1])} [ASSERT_#{assertions[j]}]"
+          puts "  - " + "PASS: ".green + "[#{assertion_tags[j]}] #{URI.unescape(fields[i])} == #{URI.unescape(fields[i+1])} [ASSERT_#{assertion_tags[j]}]"
           num_tests_passed += 1
         else
           # FAIL - fields are not the same
-          puts "  - " + "FAIL: ".red + "[#{assertions[j]}] #{URI.unescape(fields[i])} != #{URI.unescape(fields[i+1])} [ASSERT_#{assertions[j]}]"
+          puts "  - " + "FAIL: ".red + "[#{assertion_tags[j]}] #{URI.unescape(fields[i])} != #{URI.unescape(fields[i+1])} [ASSERT_#{assertion_tags[j]}]"
         end
         j += 1
       end
@@ -1148,7 +1132,7 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
       puts "  - " + "#{num_tests_passed}/#{total_num_tests} tests passed".green
     else
       # FAIL
-      puts "- " + "VERDICT:".blue + "FAIL :(".red
+      puts "- " + "VERDICT: ".blue + "FAIL :(".red
       puts "  - " + "#{num_tests_passed}/#{total_num_tests} tests passed".red
     end
   end

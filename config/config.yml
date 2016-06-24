@@ -3,7 +3,9 @@
 # Configurations
 ##
 
+##
 # Clinical labels
+##
 clinical_labels:
   unknown: 'Unknown significance'
   pathogenic: 'Pathogenic'
@@ -13,10 +15,14 @@ clinical_labels:
   likely_benign: 'Likely benign'
   pred_benign: 'Likely benign'
 
+##
 # Gene regions reference file
+##
 gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v4.bed'
 
+##
 # VCF annotation data files
+##
 annotation_files:
   clinvar: 
     source: 'ClinVar'
@@ -127,6 +133,7 @@ annotation_files:
     filename: 'data/hg19_OtoSCOPE_Mar2012.snps.vcf.gz'
     fields: '*' # Include all fields
 
+##
 # Enable 'Benign*' (i.e. 'benign star')  pathogenicity label
 #
 # An asterisk (*) can be added to a benign label when the
@@ -135,11 +142,14 @@ annotation_files:
 #     than or equal to the maximum allowed MAF.
 # 2.) The variant is currently reported as pathogenic in ClinVar,
 #     HGMD, or both.
+##
 enable_benign_star: true
 
+##
 # Third party dependencies
 #
 # Supply the full path to third party dependencies.
+##
 third_party:
   # ASAP annotation tool
   asap:
@@ -147,3 +157,29 @@ third_party:
     ref_flat: 'data/asap/refFlat.20130302.txt.gz'
     ref_seq_ali: 'data/asap/refSeqAli.20130302.txt.gz'
     fasta: 'data/asap/hg19_and_random_gatk.fa'
+
+##
+# Test
+#
+# Various configurations for testing
+#
+# Assertion tags
+# - Define which INFO tags to do assertion testing on
+# - For every tag in this list, a corresponding assert tag (e.g. 'ASSERT_GENE')
+#   should be present in the input VCF
+# - Assert tags in the input VCF should include the expected value
+##
+test:
+  assertion_tags:
+    - 'GENE'
+    - 'DBNSFP_GERP_PRED'
+    - 'DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED'
+    - 'NUM_PATH_PREDS'
+    - 'TOTAL_NUM_PREDS'
+    - 'FINAL_PRED'
+    - 'FINAL_PATHOGENICITY'
+    - 'FINAL_DISEASE'
+    - 'FINAL_PATHOGENICITY_SOURCE'
+    - 'FINAL_PMID'
+    - 'FINAL_PATHOGENICITY_REASON'
+    - 'FINAL_COMMENTS'
