@@ -1092,15 +1092,17 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
       'FINAL_COMMENTS',
     ]
 
+    # Create bcftools query string
     fields = []
     assertions.each do |a|
       fields << "%INFO/#{a}"
       fields << "%INFO/ASSERT_#{a}"
     end
     
+    # Produce output that will be tested
     stdout, stderr = Open3.capture3(
       "bcftools query \
-         --format '#{fields.join('\t') + '\n'}' \
+         --format '%CHROM\\t%POS\\t%REF\\t%ALT\t#{fields.join('\t')}\\n' \
          #{vcf_file}"
     )
 
@@ -1111,17 +1113,43 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
       abort
     end
 
+    total_num_tests = 0  # Total number of tests
+    num_tests_passed = 0 # Number of passed tests
+
+    # Go forth... do testing
+    puts "BEGIN TEST: COMPARE ASSERTION VALUES".blue
     stdout.each_line do |line|
       fields = line.chomp.split("\t")
-      puts line.chomp
+      puts "- TESTING VARIANT: ".blue + fields[0..3].join("\t")
+
+      j = 0 # Set assertions iterator
+
       # Compare field pairs
-      (0..(fields.length-1)).step(2) do |i|
+      # ...Start from fields[4] in order to skip CHROM, POS, REF, ALT
+      (4..(fields.length-1)).step(2) do |i|
+        total_num_tests += 1
         if fields[i] == fields[i+1]
-          puts "PASS: #{fields[i]} -- #{fields[i+1]}"
+          # PASS - fields are the same
+          puts "  - " + "PASS: ".green + "[#{assertions[j]}] #{URI.unescape(fields[i])} == #{URI.unescape(fields[i+1])} [ASSERT_#{assertions[j]}]"
+          num_tests_passed += 1
         else
-          puts "FAIL: #{fields[i]} -- #{fields[i+1]}"
+          # FAIL - fields are not the same
+          puts "  - " + "FAIL: ".red + "[#{assertions[j]}] #{URI.unescape(fields[i])} != #{URI.unescape(fields[i+1])} [ASSERT_#{assertions[j]}]"
         end
+        j += 1
       end
+    end
+
+    # Print verdict (including num. tests passed)
+    puts "END TEST: COMPARE ASSERTION VALUES".blue
+    if num_tests_passed == total_num_tests
+      # PASS
+      puts "- " + "VERDICT: ".blue + "PASS :)".green
+      puts "  - " + "#{num_tests_passed}/#{total_num_tests} tests passed".green
+    else
+      # FAIL
+      puts "- " + "VERDICT:".blue + "FAIL :(".red
+      puts "  - " + "#{num_tests_passed}/#{total_num_tests} tests passed".red
     end
   end
 end
