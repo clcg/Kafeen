@@ -1073,10 +1073,10 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
     num_tests_passed = 0 # Number of passed tests
 
     # Go forth... do testing
-    puts "BEGIN TEST: COMPARE ASSERTION VALUES".blue
+    puts "BEGIN ASSERTION TESTING".blue
     stdout.each_line do |line|
       fields = line.chomp.split("\t")
-      puts "- TESTING VARIANT: ".blue + fields[0..3].join("\t")
+      puts "- " + "TESTING VARIANT: ".blue + fields[0..3].join("\t")
 
       j = 0 # Set assertion_tags iterator
 
@@ -1097,7 +1097,7 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
     end
 
     # Print verdict (including num. tests passed)
-    puts "END TEST: COMPARE ASSERTION VALUES".blue
+    puts "END ASSERTION TESTING".blue
     if num_tests_passed == total_num_tests
       # PASS
       puts "- " + "VERDICT: ".blue + "PASS :)".green
