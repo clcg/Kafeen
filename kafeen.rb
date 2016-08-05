@@ -22,7 +22,7 @@ if TEST_MODE
   end
 
   # Create new index for VCF
-  stdout, stderr = Open3.capture3("bcftools index --force --tbi '#{F_IN}.gz'")
+  stdout, stderr = Open3.capture3("bcftools index --force --tbi '#{F_IN}'")
   unless stderr.empty?
     log.error("bcftools was not able to index #{F_IN}...") 
     log.error("bcftools error is: #{stderr}") 
