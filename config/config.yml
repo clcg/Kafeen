@@ -26,7 +26,7 @@ gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v4.bed'
 annotation_files:
   clinvar: 
     source: 'ClinVar'
-    filename: 'data/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
     fields:
       - 'CLINVAR_CLNSIG'      # Clinical significance
       - 'CLINVAR_DISEASE'     # Clinical disease name
@@ -36,11 +36,11 @@ annotation_files:
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
     source: 'dbSNP'
-    filename: 'data/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
     source: 'dbNSFP'
-    filename: 'data/hg19_dbNSFP_v3.0.MORL.LA-norm.bcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.bcf.gz'
     fields:
       - 'DBNSFP_SIFT_SCORE'
       - 'DBNSFP_SIFT_PRED'
@@ -54,7 +54,7 @@ annotation_files:
       - 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
   evs:
     source: 'ESP6500'
-    filename: 'data/hg19_ESP6500SI_v2.MORL.LA-norm.snps.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ESP6500SI_v2.MORL.LA-norm.snps.vcf.gz'
     fields:
       - 'EVS_EA_AC'  # European American alt allele counts
       - 'EVS_EA_AN'  # European American allele counts
@@ -67,7 +67,7 @@ annotation_files:
       - 'EVS_ALL_AF' # Total allele frequency
   exac:
     source: 'ExAC'
-    filename: 'data/hg19_ExAC_r0.3.MORL.LA-norm.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ExAC_r0.3.MORL.LA-norm.vcf.gz'
     fields:
       - 'EXAC_AFR_AC' # African American alt allele counts
       - 'EXAC_AFR_AN' # African American ref allele count
@@ -95,7 +95,7 @@ annotation_files:
       - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
     source: 'HGMD'
-    filename: 'data/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v7_regions.dedup.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
     fields:
       - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
       - 'HGMD_DISEASE'     # Disease(s)
@@ -104,7 +104,7 @@ annotation_files:
       - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
     source: '1KG'
-    filename: 'data/hg19_1000G_phase3v5a.MORL.LA-norm.DVD_v7_regions.dedup.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_1000G_phase3v5a.MORL.LA-norm.DVD_v8_regions.dedup.20160715.vcf.gz'
     fields:
       - '1KG_AFR_AC' # African American alt allele counts
       - '1KG_AFR_AN' # African American ref allele count
@@ -126,11 +126,11 @@ annotation_files:
       - '1KG_ALL_AF' # Total allele frequency
   morl:
     source: 'MORL'
-    filename: 'data/hg19_DVD_ExpertCurations_20160326.MORL.LA-norm.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_20160722.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
     source: 'OtoSCOPE'
-    filename: 'data/hg19_OtoSCOPE_Mar2012.snps.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_OtoSCOPE_Mar2012.snps.vcf.gz'
     fields: '*' # Include all fields
 
 ##
