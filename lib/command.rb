@@ -716,7 +716,7 @@ class Command
     @@log.info("Removing VEP tmp files...")
     File.unlink("#{tmp_vep_output}.gz") if File.exist?("#{tmp_vep_output}.gz")
     File.unlink("#{tmp_vep_output}.gz.tbi") if File.exist?("#{tmp_vep_output}.gz.tbi")
-    #File.unlink(vep_error_log) if File.exist?(vep_error_log)
+    File.unlink(vep_error_log) if File.exist?(vep_error_log)
     File.unlink(tmp_vep_header) if File.exist?(tmp_vep_header)
     @@log.info("Done removing VEP tmp files")
   end
