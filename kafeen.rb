@@ -7,6 +7,14 @@ require 'open3'
 cmd = Command.new(log_level: 'info')
 log = Logger.new(STDOUT)
 
+# Validate config file
+annotator = CONFIG['third_party']['annotator'].downcase
+valid_annotators = ['asap', 'vep', 'both']
+if not valid_annotators.include?(annotator)
+  log.error("Invalid annotator: #{annotator}. Valid options: #{valid_annotators.join(', ')}")
+  abort
+end
+
 if TEST_MODE
   # Skip collecting variants if test mode not enabled...
   # Set VCF and BED files that will be used for subsequent steps
@@ -61,13 +69,22 @@ cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                     out_file_prefix: FILE_PREFIX,
                     clinical_labels: CONFIG['clinical_labels'])
 
-# Add HGVS notation (using ASAP)
-cmd.add_asap(vcf_file: cmd.add_predictions_result,
+# Add HGVS notation (using ASAP and/or VEP, as specified in config)
+if ['asap', 'both'].include?(annotator)
+  cmd.add_asap(vcf_file: cmd.add_predictions_result,
+               out_file_prefix: FILE_PREFIX,
+               asap_path: CONFIG['third_party']['asap']['path'],
+               ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+               ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+               fasta: CONFIG['third_party']['asap']['fasta'])
+end
+if ['vep', 'both'].include?(annotator)
+  cmd.add_vep(vcf_file: cmd.add_predictions_result,
              out_file_prefix: FILE_PREFIX,
-             asap_path: CONFIG['third_party']['asap']['path'],
-             ref_flat: CONFIG['third_party']['asap']['ref_flat'],
-             ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
-             fasta: CONFIG['third_party']['asap']['fasta'])
+             vep_path: CONFIG['third_party']['vep']['path'],
+             vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+           )
+end
 
 # Add final pathogenicity
 cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,

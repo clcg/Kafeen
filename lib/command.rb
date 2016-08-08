@@ -616,6 +616,104 @@ class Command
     @@log.info("Done removing tmp files")
   end
 
+
+  def add_vep(vcf_file:, out_file_prefix:, vep_path:, vep_cache_path:)
+    @vep_consequence_tag = 'VEP_Consequence'
+    @vep_exon_tag = 'VEP_EXON'
+    @vep_intron_tag = 'VEP_INTRON'
+    @vep_hgvs_c_tag = 'VEP_HGVSc'
+    @vep_hgvs_p_tag = 'VEP_HGVSp'
+
+    @add_vep_result = "#{out_file_prefix}.vcf.gz"
+
+    # Run VEP
+    # Make tsv containing relevant fields in vep output,
+    # to annotate kafeen vcf with using bcftools
+    tmp_vep_output = "#{out_file_prefix}.vep.out.tmp.txt"
+    vep_error_log = "#{out_file_prefix}.vep.errors.log"
+    vep_header = nil
+    @@log.info("Running VEP...")
+    File.open(tmp_vep_output, 'w') do |f|
+      `#{vep_path} \
+        -species human -refseq -format vcf -force -fork 4 -port 3337 -cache \
+        -dir #{vep_cache_path} \
+        -i #{vcf_file} -o STDOUT -vcf -hgvs -numbers -pick 2> #{vep_error_log}`
+      .each_line do |line|
+        line.chomp!
+        #@@log.info(line)
+        if line.start_with?("#")
+          if line.include? "<ID=CSQ"
+            vep_header = line.split("Format: ")[1].split("\">")[0].split("|")
+          end
+          next
+        end
+        fields = line.split("\t")
+        fields.each_with_index do |field, i|
+          if field.include? "CSQ="
+            csq = field.split("CSQ=")[1]
+            #csq.split(",").each do |transcript|
+            #transcript.split("|").each_with_index do |subfield, j|
+            csq.split("|").each_with_index do |subfield, j|
+              categ = vep_header[j]
+              if ["Consequence", "HGVSc", "HGVSp", "EXON", "INTRON"].include?(categ)
+                  f.print(subfield + "\t")
+              end
+            end
+          # chrom, pos, ref, alt
+          elsif [0, 1, 3, 4].include?(i)
+              f.print(field + "\t")
+          end
+        end
+      f.print("\n")
+      end
+    end
+
+    #Annotate kafeen vcf with info from vep
+    @@log.info("Compressing #{tmp_vep_output}...")
+    `bgzip -f #{tmp_vep_output}`
+    @@log.info("Compressed VEP output written to #{tmp_vep_output}")
+
+    @@log.info("Indexing #{tmp_vep_output}.gz...")
+    `tabix -f -s1 -b2 -e2 #{tmp_vep_output}.gz`
+    @@log.info("Done creating VEP index file")
+
+    tmp_vep_output_vcf = "#{out_file_prefix}.vep.vcf.gz"
+    tmp_vep_header = "#{out_file_prefix}.vep_header.tmp.txt"
+
+    @@log.info("Creating VEP VCF header file...")
+    header = [
+      "##INFO=<ID=#{@vep_consequence_tag},Number=1,Type=String,Description=\"Predicted variant consequence.\">",
+      "##INFO=<ID=#{@vep_exon_tag},Number=1,Type=String,Description=\"Affected exon numbering. Format is Number\/Total.\">",
+      "##INFO=<ID=#{@vep_intron_tag},Number=1,Type=String,Description=\"Affected intron numbering. Format is Number\/Total.\">",
+      "##INFO=<ID=#{@vep_hgvs_c_tag},Number=1,Type=String,Description=\"HGVS coding sequence names based on Ensembl stable identifiers.\">",
+      "##INFO=<ID=#{@vep_hgvs_p_tag},Number=1,Type=String,Description=\"HGVS protein sequence names based on Ensembl stable identifiers.\">",
+    ].join("\n") + "\n"
+
+    File.open(tmp_vep_header, 'w') { |f| f.write(header) }
+    @@log.info("VEP VCF header file written to #{tmp_vep_header}.")
+
+    `bcftools annotate \
+       --annotations #{tmp_vep_output}.gz \
+       --columns CHROM,POS,REF,ALT,#{@vep_consequence_tag},#{@vep_exon_tag},#{@vep_intron_tag},#{@vep_hgvs_c_tag},#{@vep_hgvs_p_tag} \
+       --header-lines #{tmp_vep_header} \
+       --output #{tmp_vep_output_vcf} \
+       --output-type z \
+       #{vcf_file}`
+
+    # Rename tmp output to final output
+    File.rename(tmp_vep_output_vcf, @add_vep_result)
+    @@log.info("Output written to #{@add_vep_result}")
+
+    # Remove tmp files
+    @@log.info("Removing VEP tmp files...")
+    File.unlink("#{tmp_vep_output}.gz") if File.exist?("#{tmp_vep_output}.gz")
+    File.unlink("#{tmp_vep_output}.gz.tbi") if File.exist?("#{tmp_vep_output}.gz.tbi")
+    #File.unlink(vep_error_log) if File.exist?(vep_error_log)
+    File.unlink(tmp_vep_header) if File.exist?(tmp_vep_header)
+    @@log.info("Done removing VEP tmp files")
+  end
+
+
   ##
   # Finalize Pathogenicity
   ##

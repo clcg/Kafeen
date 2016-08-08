@@ -18,7 +18,7 @@ clinical_labels:
 ##
 # Gene regions reference file
 ##
-gene_regions_ref_file: 'data/hg19_gene_and_mitochondrial_regions.v4.bed'
+gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/references/hg19_gene_and_mitochondrial_regions.v4.bed'
 
 ##
 # VCF annotation data files
@@ -101,6 +101,11 @@ annotation_files:
       - 'HGMD_DISEASE'     # Disease(s)
       - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
       - 'HGMD_PMID'        # PubMed ID(s)
+    fields:
+      - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
+      - 'HGMD_DISEASE'     # Disease(s)
+      - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
+      - 'HGMD_PMID'        # PubMed ID(s)
       - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
     source: '1KG'
@@ -152,11 +157,15 @@ enable_benign_star: true
 ##
 third_party:
   # ASAP annotation tool
+  annotator: 'vep'  # Which annotator to use. Options are "asap", "vep", and "both".
   asap:
-    path: '/Users/sephraim/programs/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
-    ref_flat: 'data/asap/refFlat.20130302.txt.gz'
-    ref_seq_ali: 'data/asap/refSeqAli.20130302.txt.gz'
-    fasta: 'data/asap/hg19_and_random_gatk.fa'
+    path: '/Shared/MORL/Tools/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
+    ref_flat: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refFlat.20130302.txt.gz'
+    ref_seq_ali: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refSeqAli.20130302.txt.gz'
+    fasta: '/Shared/MORL/Reference/Annotation_Databases/ASAP/hg19_and_random_gatk.fa'
+  vep:
+    path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/variant_effect_predictor.pl'
+    cache_path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/cache-dir'
 
 ##
 # Test
