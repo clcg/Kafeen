@@ -704,6 +704,14 @@ class Command
     File.rename(tmp_vep_output_vcf, @add_vep_result)
     @@log.info("Output written to #{@add_vep_result}")
 
+    # Index output file
+    @@log.info("Indexing #{@add_vep_result}...")
+    `bcftools index \
+       --force \
+       --tbi \
+       #{@add_vep_result}`
+    @@log.info("Done creating index file")
+
     # Remove tmp files
     @@log.info("Removing VEP tmp files...")
     File.unlink("#{tmp_vep_output}.gz") if File.exist?("#{tmp_vep_output}.gz")
