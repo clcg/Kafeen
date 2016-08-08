@@ -618,11 +618,11 @@ class Command
 
 
   def add_vep(vcf_file:, out_file_prefix:, vep_path:, vep_cache_path:)
-    @vep_consequence_tag = 'VEP_Consequence'
+    @vep_consequence_tag = 'VEP_CONSEQUENCE'
     @vep_exon_tag = 'VEP_EXON'
     @vep_intron_tag = 'VEP_INTRON'
-    @vep_hgvs_c_tag = 'VEP_HGVSc'
-    @vep_hgvs_p_tag = 'VEP_HGVSp'
+    @vep_hgvs_c_tag = 'VEP_HGVS_C'
+    @vep_hgvs_p_tag = 'VEP_HGVS_P'
 
     @add_vep_result = "#{out_file_prefix}.vcf.gz"
 
