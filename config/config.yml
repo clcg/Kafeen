@@ -18,7 +18,7 @@ clinical_labels:
 ##
 # Gene regions reference file
 ##
-gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/references/hg19_gene_and_mitochondrial_regions.v4.bed'
+gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/references/hg19_gene_and_mitochondrial_regions.v5.bed'
 
 ##
 # VCF annotation data files
@@ -40,7 +40,7 @@ annotation_files:
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
     source: 'dbNSFP'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.bcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.20160919.bcf.gz'
     fields:
       - 'DBNSFP_SIFT_SCORE'
       - 'DBNSFP_SIFT_PRED'
@@ -101,11 +101,6 @@ annotation_files:
       - 'HGMD_DISEASE'     # Disease(s)
       - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
       - 'HGMD_PMID'        # PubMed ID(s)
-    fields:
-      - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
-      - 'HGMD_DISEASE'     # Disease(s)
-      - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
-      - 'HGMD_PMID'        # PubMed ID(s)
       - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
     source: '1KG'
@@ -131,7 +126,7 @@ annotation_files:
       - '1KG_ALL_AF' # Total allele frequency
   morl:
     source: 'MORL'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_20160722.MORL.LA-norm.vcf.gz'
+    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_20170404.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
     source: 'OtoSCOPE'
@@ -157,7 +152,7 @@ enable_benign_star: true
 ##
 third_party:
   # ASAP annotation tool
-  annotator: 'vep'  # Which annotator to use. Options are "asap", "vep", and "both".
+  annotator: 'asap'  # Which annotator to use. Options are "asap", "vep", and "both".
   asap:
     path: '/Shared/MORL/Tools/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
     ref_flat: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refFlat.20130302.txt.gz'
