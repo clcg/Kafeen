@@ -363,6 +363,7 @@ class Command
                output[:total_num_preds] += 1
              elsif field == 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
                # phyloP20way mammalian prediction
+               # TODO: The cutoff should be changed from 0.95 to 1.0
                if preds.any? { |pred| pred.to_f >= 0.95 }
                  # Conserved
                  output[:num_path_preds] += 1
