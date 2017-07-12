@@ -25,7 +25,6 @@ gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/referenc
 ##
 annotation_files:
   clinvar: 
-    include: true
     source: 'ClinVar'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
     fields:
@@ -36,12 +35,10 @@ annotation_files:
       - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
-    include: true
     source: 'dbSNP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
-    include: true
     source: 'dbNSFP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.20160919.bcf.gz'
     fields:
@@ -56,7 +53,6 @@ annotation_files:
       - 'DBNSFP_GERP_RS'
       - 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
   evs:
-    include: true
     source: 'ESP6500'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ESP6500SI_v2.MORL.LA-norm.snps.vcf.gz'
     fields:
@@ -70,7 +66,6 @@ annotation_files:
       - 'EVS_ALL_AN' # Total allele counts
       - 'EVS_ALL_AF' # Total allele frequency
   exac:
-    include: true
     source: 'ExAC'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ExAC_r0.3.MORL.LA-norm.PASS_only.vcf.gz'
     fields:
@@ -99,7 +94,6 @@ annotation_files:
       - 'EXAC_ALL_AN' # Total allele counts
       - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
-    include: true
     source: 'HGMD'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
     fields:
@@ -109,7 +103,6 @@ annotation_files:
       - 'HGMD_PMID'        # PubMed ID(s)
       - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
   g1000:
-    include: true
     source: '1KG'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_1000G_phase3v5a.MORL.LA-norm.DVD_v8_regions.dedup.20160715.vcf.gz'
     fields:
@@ -132,12 +125,10 @@ annotation_files:
       - '1KG_ALL_AN' # Total allele count
       - '1KG_ALL_AF' # Total allele frequency
   morl:
-    include: true
     source: 'MORL'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_201704221056.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
   otoscope:
-    include: true
     source: 'OtoSCOPE'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_OtoSCOPE_Mar2012.snps.20170421_update.vcf.gz'
     fields: '*' # Include all fields
