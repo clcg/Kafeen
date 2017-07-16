@@ -4,7 +4,7 @@ require_relative File.join('lib', 'boot.rb')
 require 'logger'
 require 'open3'
 
-cmd = Command.new(log_level: 'info')
+cmd = Command.new(log_level: 'info', log_out: STDOUT)
 log = Logger.new(STDOUT)
 
 # Validate config file
