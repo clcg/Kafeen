@@ -35,7 +35,7 @@ else
 end
 
 # Load configuration file
-default_config = YAML.load_file(File.join('config', 'config.yml'))
+default_config = YAML.load_file(File.join(__dir__, 'config.yml'))
 if opts[:config].nil?
   # Use default
   CONFIG = default_config
