@@ -145,6 +145,8 @@ class Command
             @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
             @@log.debug("bcftools error is: #{stderr}")
           end
+        else
+          @@log.debug("Excluding annotation source: #{vcf['source']}.")
         end
   
         # Did bcftools return an error?
