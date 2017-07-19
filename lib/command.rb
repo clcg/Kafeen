@@ -145,8 +145,6 @@ class Command
             @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
             @@log.debug("bcftools error is: #{stderr}")
           end
-        else
-          @@log.info("Excluding annotation source: #{vcf['source']}.")
         end
   
         # Did bcftools return an error?
@@ -178,6 +176,9 @@ class Command
           # Store tmp file name (filename) and the original VCF that the data came from (parent)
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
+      else
+        @@log.info("#{vcf['source']} flagged for exclusion.")
+        @@log.info("Skipping annotation source: #{vcf['source']}.")
       end # RJM: config.yml vcf source flag check end
     end
 
