@@ -176,7 +176,7 @@ class Command
           # Store tmp file name (filename) and the original VCF that the data came from (parent)
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
-      else if !vcf['include']
+      elsif !vcf['include']
         @@log.info("EXCLUDED #{vcf['source']}...Source flagged for exclusion in config.yml")
         @@log.info("Skipping annotation source: #{vcf['source']}.")
       else
