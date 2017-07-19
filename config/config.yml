@@ -99,7 +99,7 @@ annotation_files:
       - 'EXAC_ALL_AN' # Total allele counts
       - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
-    include: false
+    #include: false
     source: 'HGMD'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
     fields:
