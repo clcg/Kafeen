@@ -104,77 +104,81 @@ class Command
     tmp_vcfs = {}
     # Query all VCF files for variants
     vcf_files.each do |key, vcf|
-      next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
-      tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
-      if vcf['fields'].nil?
-        # Remove all INFO tags
-        fields = 'INFO'
-      elsif vcf['fields'] == '*'
-        # Keep all INFO tags
-        fields = '*'
-      else
-        # Keep only the following INFO tags (indicated by ^)
-        fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
-      end
-
-      # Remove ID column as well (except for dbSNP)
-      if key != 'dbsnp'
-        if fields != '*'
-          fields = "ID,#{fields}"
+      if vcf['include'] # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
+        next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
+        tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
+        if vcf['fields'].nil?
+          # Remove all INFO tags
+          fields = 'INFO'
+        elsif vcf['fields'] == '*'
+          # Keep all INFO tags
+          fields = '*'
         else
-          fields = "ID"
+          # Keep only the following INFO tags (indicated by ^)
+          fields = "^" + vcf['fields'].map { |f| "INFO/#{f}" }.join(',')
         end
-      end
-
-      # Query...
-      @@log.info("Querying #{vcf['source']}...")
-      if fields != '*'
-        stdout, stderr = Open3.capture3(
-          "bcftools annotate \
-             --remove '#{fields}' \
-             --regions-file '#{bed_file}' \
-             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
-             --output-type z \
-             --output #{tmp_source_vcf} \
-             #{vcf['filename']}"
-        )
-
-        stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
+  
+        # Remove ID column as well (except for dbSNP)
+        if key != 'dbsnp'
+          if fields != '*'
+            fields = "ID,#{fields}"
+          else
+            fields = "ID"
+          end
+        end
+  
+        # Query...
+        @@log.info("Querying #{vcf['source']}...")
+        if fields != '*'
+          stdout, stderr = Open3.capture3(
+            "bcftools annotate \
+               --remove '#{fields}' \
+               --regions-file '#{bed_file}' \
+               --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
+               --output-type z \
+               --output #{tmp_source_vcf} \
+               #{vcf['filename']}"
+          )
+  
+          stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
+          if !stderr.empty?
+            @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
+            @@log.debug("bcftools error is: #{stderr}")
+          end
+        else
+          @@log.info("Excluding annotation source: #{vcf['source']}.")
+        end
+  
+        # Did bcftools return an error?
+        # Try again and don't remove any INFO tags this time
+        if fields == '*' || !stderr.empty?
+          stdout, stderr = Open3.capture3(
+            "bcftools view \
+               --regions-file '#{bed_file}' \
+               --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
+               --output-type z \
+               --output-file #{tmp_source_vcf} \
+               #{vcf['filename']}"
+          )
+          stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
+        end
+  
+        # Index the results file...
         if !stderr.empty?
-          @@log.debug("bcftools returned an error for #{vcf['source']}. Trying another query method...")
+          # ERROR
+          @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
           @@log.debug("bcftools error is: #{stderr}")
+        else
+          # SUCCESS -- create index file
+          @@log.info("Successfully queried #{vcf['source']}")
+          @@log.info("Creating index file for #{vcf['source']}...")
+          `bcftools index --force --tbi #{tmp_source_vcf}`
+          @@log.info("Done creating index file")
+  
+          # Store tmp file name (filename) and the original VCF that the data came from (parent)
+          tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
-      end
-
-      # Did bcftools return an error?
-      # Try again and don't remove any INFO tags this time
-      if fields == '*' || !stderr.empty?
-        stdout, stderr = Open3.capture3(
-          "bcftools view \
-             --regions-file '#{bed_file}' \
-             --include 'REF ~ \"^[ACGT]\\+$\" && ALT ~ \"^[ACGT,]\\+$\"' \
-             --output-type z \
-             --output-file #{tmp_source_vcf} \
-             #{vcf['filename']}"
-        )
-        stderr = stderr.gsub(/^Lines.*$/, '').strip # remove unnecessary "error"
-      end
-
-      # Index the results file...
-      if !stderr.empty?
-        # ERROR
-        @@log.error("bcftools was not able to query #{vcf['source']}. Please check that file name and INFO tags are set correctly in your config file.")
-        @@log.debug("bcftools error is: #{stderr}")
-      else
-        # SUCCESS -- create index file
-        @@log.info("Successfully queried #{vcf['source']}")
-        @@log.info("Creating index file for #{vcf['source']}...")
-        `bcftools index --force --tbi #{tmp_source_vcf}`
-        @@log.info("Done creating index file")
-
-        # Store tmp file name (filename) and the original VCF that the data came from (parent)
-        tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
-      end
+      end # RJM: config.yml vcf source flag check end
     end
 
     # Construct list of VCFs to merge
