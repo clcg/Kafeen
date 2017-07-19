@@ -177,11 +177,12 @@ class Command
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
       else if !vcf['include']
-        @@log.info("EXCLUDED #{vcf['source']}...Source flagged for exclusion in config.yaml")
+        @@log.info("EXCLUDED #{vcf['source']}...Source flagged for exclusion in config.yml")
         @@log.info("Skipping annotation source: #{vcf['source']}.")
       else
-        @@log.error("EXCLUDED #{vcf['source']}...Incompatible include input within config.yaml.")
-        @@log.error("Please review the config.yaml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
+        @@log.error("EXCLUDED #{vcf['source']}...Incompatible include input within config.yml.")
+        @@log.error("Please review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
+        @@log.error("Skipping annotation source: #{vcf['source']}.")
       end # RJM: config.yml vcf source flag check end
     end
 
