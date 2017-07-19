@@ -36,7 +36,7 @@ annotation_files:
       - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
-    include: tr
+    include: dk
     source: 'dbSNP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
