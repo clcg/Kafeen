@@ -104,7 +104,7 @@ class Command
     tmp_vcfs = {}
     # Query all VCF files for variants
     vcf_files.each do |key, vcf|
-      if vcf['include'] # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
+      if vcf['include'] or vcf['include'].nil? or !vcf.has_key? :include # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
         next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
         tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
         if vcf['fields'].nil?
@@ -176,9 +176,12 @@ class Command
           # Store tmp file name (filename) and the original VCF that the data came from (parent)
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
-      else
-        @@log.info("#{vcf['source']} flagged for exclusion.")
+      else if !vcf['include']
+        @@log.info("EXCLUDED #{vcf['source']}...Source flagged for exclusion in config.yaml")
         @@log.info("Skipping annotation source: #{vcf['source']}.")
+      else
+        @@log.error("EXCLUDED #{vcf['source']}...Incompatible include input within config.yaml.")
+        @@log.error("Please review the config.yaml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
       end # RJM: config.yml vcf source flag check end
     end
 
