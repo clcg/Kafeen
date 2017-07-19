@@ -104,7 +104,7 @@ class Command
     tmp_vcfs = {}
     # Query all VCF files for variants
     vcf_files.each do |key, vcf|
-      if vcf['include'] or !(vcf.has_key? :include) # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
+      if vcf['include'] || !(vcf.has_key? :include) # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
         next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
         tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
         if vcf['fields'].nil?
