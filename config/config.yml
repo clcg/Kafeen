@@ -25,7 +25,7 @@ gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/referenc
 ##
 annotation_files:
   clinvar: 
-    #include: true
+    include: true
     source: 'ClinVar'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
     fields:
@@ -99,7 +99,7 @@ annotation_files:
       - 'EXAC_ALL_AN' # Total allele counts
       - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
-    include: false
+    include: true
     source: 'HGMD'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
     fields:
