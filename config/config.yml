@@ -132,7 +132,7 @@ annotation_files:
       - '1KG_ALL_AN' # Total allele count
       - '1KG_ALL_AF' # Total allele frequency
   morl:
-    include: true
+    #include: true
     source: 'MORL'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_201704221056.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
