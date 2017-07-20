@@ -176,7 +176,7 @@ class Command
           # Store tmp file name (filename) and the original VCF that the data came from (parent)
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
-      elsif !vcf['include'] && false == vcf['include'] && vcf['include'].class <=> 'FalseClass' == 0 # RJM: config.yml vcf source flag check end
+      elsif !vcf['include'] && false == vcf['include'] # RJM: config.yml vcf source flag check end
         @@log.info("EXCLUDED #{vcf['source']}...Source flagged for exclusion in config.yml, skipping #{vcf['source']} annotation source.")
       else # RJM: config.yml vcf source flag check end
         @@log.error("EXCLUDED #{vcf['source']}...Incompatible include input within config.yml. Expected true or false, config.yml provided: . #{vcf['include']}\n\tPlease review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)\n\tSkipping annotation source: #{vcf['source']}.")
