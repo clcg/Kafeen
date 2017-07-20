@@ -167,6 +167,7 @@ third_party:
     ref_flat: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refFlat.20130302.txt.gz'
     ref_seq_ali: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refSeqAli.20130302.txt.gz'
     fasta: '/Shared/MORL/Reference/Annotation_Databases/ASAP/hg19_and_random_gatk.fa'
+  #VEP annotation tool
   vep:
     path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/variant_effect_predictor.pl'
     cache_path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/cache-dir'
