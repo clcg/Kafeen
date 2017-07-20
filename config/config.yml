@@ -25,7 +25,7 @@ gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/referenc
 ##
 annotation_files:
   clinvar: 
-    #include: true
+    include: gasdg
     source: 'ClinVar'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
     fields:
@@ -36,7 +36,7 @@ annotation_files:
       - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
-    include: dk
+    include: true
     source: 'dbSNP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
