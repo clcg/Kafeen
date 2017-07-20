@@ -105,10 +105,10 @@ class Command
     # Query all VCF files for variants
     vcf_files.each do |key, vcf|
       if vcf['include'] == true || !(vcf.has_key? 'include') # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
-        if !vcf.haskey? 'include'
-          @@log.info('INCLUDED #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml.')
+        if !vcf.has_key? 'include'
+          @@log.info("INCLUDED #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml.")
         else
-          @@log.info('INCLUDED #{vcf['source']} explicitly by include tag.')
+          @@log.info("INCLUDED #{vcf['source']} explicitly by include tag.")
         end
         next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
         tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
