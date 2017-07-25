@@ -110,9 +110,9 @@ class Command
         if vcf['include'] && true == vcf['include']
           @@log.info("Included #{vcf['source']} explicitly by a valid include tag")
         elsif !vcf.has_key? 'include'
-          @@log.info("Included #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml")
+          @@log.warning("Included #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml")
         else
-          @@log.error("Included #{vcf['source']} implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
+          @@log.warning("Included #{vcf['source']} implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
         end
         next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
         tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
