@@ -104,11 +104,15 @@ class Command
     tmp_vcfs = {}
     # Query all VCF files for variants
     vcf_files.each do |key, vcf|
-      if vcf['include'] == true || !(vcf.has_key? 'include') # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
-        if !vcf.has_key? 'include'
-          @@log.info("INCLUDED #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml.")
+      if !vcf['include'] && false == vcf['include'] # RJM: config.yml vcf source flag check end
+          @@log.info("Exluded #{vcf['source']} explicitly in config.yml. Skipping #{vcf['source']} annotation source")
+      else: # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
+        if vcf['include'] && true == vcf['include']
+          @@log.info("Included #{vcf['source']} explicitly by a valid include tag")
+        elsif !vcf.has_key? 'include'
+          @@log.info("Included #{vcf['source']} implicitly. #{vcf['source']} did not have an include tag in config.yml")
         else
-          @@log.info("INCLUDED #{vcf['source']} explicitly by include tag.")
+          @@log.error("Included #{vcf['source']} implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)")
         end
         next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
         tmp_source_vcf = "#{out_file_prefix}.#{vcf['source']}.tmp.vcf.gz"
@@ -181,10 +185,6 @@ class Command
           # Store tmp file name (filename) and the original VCF that the data came from (parent)
           tmp_vcfs[key] = {'filename' => tmp_source_vcf, 'parent' => vcf['filename']}
         end
-      elsif !vcf['include'] && false == vcf['include'] # RJM: config.yml vcf source flag check end
-        @@log.info("EXCLUDED #{vcf['source']} explicitly in config.yml. Skipping #{vcf['source']} annotation source.")
-      else # RJM: config.yml vcf source flag check end
-        @@log.error("EXCLUDED #{vcf['source']} implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: #{vcf['include']}.\n\tPlease review the config.yml and indicated whether or not you would like to include #{vcf['source']} (include: true) or not (include: false)\n\tSkipping annotation source: #{vcf['source']}.")
       end # RJM: config.yml vcf source flag check end
     end
 
