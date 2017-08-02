@@ -36,7 +36,7 @@ annotation_files:
       - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
       - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
   dbsnp:
-    include: tsdflkje
+    include: true
     source: 'dbSNP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
@@ -70,7 +70,7 @@ annotation_files:
       - 'EVS_ALL_AN' # Total allele counts
       - 'EVS_ALL_AF' # Total allele frequency
   exac:
-    include: 
+    include: true
     source: 'ExAC'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ExAC_r0.3.MORL.LA-norm.PASS_only.vcf.gz'
     fields:
@@ -99,7 +99,7 @@ annotation_files:
       - 'EXAC_ALL_AN' # Total allele counts
       - 'EXAC_ALL_AF' # Total allele frequency
   hgmd:
-    include: false
+    include: true
     source: 'HGMD'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
     fields:
@@ -132,7 +132,7 @@ annotation_files:
       - '1KG_ALL_AN' # Total allele count
       - '1KG_ALL_AF' # Total allele frequency
   morl:
-    #include: true
+    include: true
     source: 'MORL'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_201704221056.MORL.LA-norm.vcf.gz'
     fields: '*' # Include all fields
