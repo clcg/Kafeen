@@ -278,10 +278,6 @@ class Command
     @num_path_preds_tag = "NUM_PATH_PREDS"
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
-
-    # ------------------------
-    #if (vcf_file['dbSNFP'][include] == TRUE
-    # ------------------------
     
     # Get only regions of interest from dbNSFP
     @@log.info("Subsetting dbNSFP for faster annotation...")

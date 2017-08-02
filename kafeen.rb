@@ -62,13 +62,29 @@ cmd.add_genes(bed_file: bed_file,
               vcf_file: vcf_file,
               out_file_prefix: FILE_PREFIX)
 
-# Annotate with dbNSFP
-cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
-                    vcf_file: cmd.add_genes_result,
-                    bed_file: merged_bed_file,
-                    out_file_prefix: FILE_PREFIX,
-                    clinical_labels: CONFIG['clinical_labels'])
-
+# -------------------------- rob marini edits
+# if statement here to check for vcf['dbnsfp']['include'] == true include tag 
+              
+include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
+if !include_dbnsfp && false == dbnsfp
+  log.info("Exluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
+else
+  if include_dbNSFP && true == include_dbNSFP
+    log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
+  elsif !CONFIG['annotation_files']['dbnsfp']['include']
+    log.warning("Prediction annotating with dbNSFP implicitly. dbNSFP did not have an include tag in config.yml")
+  else
+    log.warning("Prediction annotating with dbNSFP implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include dbNSFP (include: true) or not (include: false)")
+  end           
+  # Annotate with dbNSFP
+  cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
+                      vcf_file: cmd.add_genes_result,
+                      bed_file: merged_bed_file,
+                      out_file_prefix: FILE_PREFIX,
+                      clinical_labels: CONFIG['clinical_labels'])
+end
+# --------------------------
+                      
 # Add HGVS notation (using ASAP and/or VEP, as specified in config)
 if ['asap', 'both'].include?(annotator)
   cmd.add_asap(vcf_file: cmd.add_predictions_result,
