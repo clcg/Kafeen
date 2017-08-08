@@ -88,12 +88,27 @@ end
                       
 # Add HGVS notation (using ASAP and/or VEP, as specified in config)
 if ['asap', 'both'].include?(annotator)
-  cmd.add_asap(vcf_file: cmd.add_predictions_result,
-               out_file_prefix: FILE_PREFIX,
-               asap_path: CONFIG['third_party']['asap']['path'],
-               ref_flat: CONFIG['third_party']['asap']['ref_flat'],
-               ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
-               fasta: CONFIG['third_party']['asap']['fasta'])
+  if !include_dbnsfp && false == include_dbnsfp
+    cmd.add_asap(vcf_file: cmd.add_genes_result,
+                   out_file_prefix: FILE_PREFIX,
+                   asap_path: CONFIG['third_party']['asap']['path'],
+                   ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+                   ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+                   fasta: CONFIG['third_party']['asap']['fasta'])
+  else
+    cmd.add_asap(vcf_file: cmd.add_predictions_result,
+                   out_file_prefix: FILE_PREFIX,
+                   asap_path: CONFIG['third_party']['asap']['path'],
+                   ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+                   ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+                   fasta: CONFIG['third_party']['asap']['fasta'])
+  end
+#  cmd.add_asap(vcf_file: cmd.add_predictions_result,
+#               out_file_prefix: FILE_PREFIX,
+#               asap_path: CONFIG['third_party']['asap']['path'],
+#               ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+#               ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+#               fasta: CONFIG['third_party']['asap']['fasta'])
 end
 if ['vep', 'both'].include?(annotator)
   cmd.add_vep(vcf_file: cmd.add_predictions_result,
