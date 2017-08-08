@@ -296,7 +296,7 @@ class Command
 
     # Add dbNSFP predictions
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
-    @@log.info("Adding dbNSFP pedictions to #{tmp_output_file}...")
+    @@log.info("Adding dbNSFP predictions to #{tmp_output_file}...")
     File.open(tmp_output_file, 'w') do |f|
     `bcftools annotate \
        --annotations #{dbnsfp_subset_file} \
