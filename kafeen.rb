@@ -66,7 +66,7 @@ cmd.add_genes(bed_file: bed_file,
 # if statement here to check for vcf['dbnsfp']['include'] == true include tag 
               
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
-if !include_dbnsfp && false == dbnsfp
+if !include_dbnsfp && false == include_dbnsfp
   log.info("Exluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
 else
   if include_dbNSFP && true == include_dbNSFP
