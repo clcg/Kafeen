@@ -68,7 +68,7 @@ cmd.add_genes(bed_file: bed_file,
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
 if !include_dbnsfp && false == include_dbnsfp
   log.info("Exluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
-  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
+#  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
 else
   if include_dbNSFP && true == include_dbNSFP
     log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
@@ -88,7 +88,15 @@ end
                       
 # Add HGVS notation (using ASAP and/or VEP, as specified in config)
 if ['asap', 'both'].include?(annotator)
-  cmd.add_asap(vcf_file: cmd.add_predictions_result,
+  if !include_dbnsfp && false == include_dbnsfp #merge if structure in future for more succinct and simple flow, Rob Marini Edit
+    cmd.add_asap(vcf_file: cmd.add_genes_result,
+                 out_file_prefix: FILE_PREFIX,
+                 asap_path: CONFIG['third_party']['asap']['path'],
+                 ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+                 ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+                 fasta: CONFIG['third_party']['asap']['fasta'])
+  else
+    cmd.add_asap(vcf_file: cmd.add_predictions_result,
                out_file_prefix: FILE_PREFIX,
                asap_path: CONFIG['third_party']['asap']['path'],
                ref_flat: CONFIG['third_party']['asap']['ref_flat'],
@@ -96,11 +104,18 @@ if ['asap', 'both'].include?(annotator)
                fasta: CONFIG['third_party']['asap']['fasta'])
 end
 if ['vep', 'both'].include?(annotator)
-  cmd.add_vep(vcf_file: cmd.add_predictions_result,
-             out_file_prefix: FILE_PREFIX,
-             vep_path: CONFIG['third_party']['vep']['path'],
-             vep_cache_path: CONFIG['third_party']['vep']['cache_path']
-           )
+  if !include_dbnsfp && false == include_dbnsfp #merge if structure in future for more succinct and simple flow, Rob Marini Edit
+    cmd.add_vep(vcf_file: cmd.add_genes_result,
+                   out_file_prefix: FILE_PREFIX,
+                   vep_path: CONFIG['third_party']['vep']['path'],
+                   vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+                 )
+  else  
+    cmd.add_vep(vcf_file: cmd.add_predictions_result,
+               out_file_prefix: FILE_PREFIX,
+               vep_path: CONFIG['third_party']['vep']['path'],
+               vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+             )
 end
 
 # Add final pathogenicity
