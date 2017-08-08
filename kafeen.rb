@@ -68,7 +68,7 @@ cmd.add_genes(bed_file: bed_file,
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
 if !include_dbnsfp && false == include_dbnsfp
   log.info("Exluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
-  cmd.add_predictions_result = cmd.add_genes_result;
+  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
 else
   if include_dbNSFP && true == include_dbNSFP
     log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
