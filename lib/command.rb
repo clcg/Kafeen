@@ -777,8 +777,9 @@ class Command
                             vep_sift_confidence = vep_sift_pred_parts[1].upcase[0,1] + "C"
                             vep_sift_pred = vep_sift_pred + "-" + vep_sift_confidence
                         end
-                        if vep_sift_pred in ["D", "D-LC"]:
+                        if vep_sift_pred == "D" || vep_sift_pred == "D-LC" 
                           score = score + 100
+			end
                   end 
                   vep_polyphen_raw = vep_fields[vep_polyphen_index]
                   if !vep_polyphen_raw.nil? && !vep_polyphen_raw.empty?
@@ -789,9 +790,10 @@ class Command
                       #    score = score + 100
                       #end
                       vep_polyphen_pred = vep_polyphen_pred_parts[0].upcase[0,1]
-                      if vep_polyphen_pred in ["P"]:
+                      if vep_polyphen_pred == "P"
                           score = score + 100
-                  end
+                      end 
+		 end
 
                   vep_canonical = vep_fields[vep_canonical_index]
                   if !vep_canonical.empty?
