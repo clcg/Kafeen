@@ -106,7 +106,7 @@ class Command
     vcf_files.each do |key, vcf|
       if !vcf['include'] && false == vcf['include'] # RJM: config.yml vcf source flag check end
           @@log.info("Exluded #{vcf['source']} explicitly in config.yml. Skipping #{vcf['source']} annotation source")
-      else: # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
+      else # RJM: checks flag in config.yml if the vcf source should be included or not in the kafeen run. true allows the source to be considered as normal, false ignores the source
         if vcf['include'] && true == vcf['include']
           @@log.info("Included #{vcf['source']} explicitly by a valid include tag")
         elsif !vcf.has_key? 'include'
