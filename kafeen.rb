@@ -67,8 +67,32 @@ cmd.add_genes(bed_file: bed_file,
               
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
 if !include_dbnsfp && false == include_dbnsfp
-  log.info("Exluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
+  log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
 #  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
+  
+  # Add HGVS notation (using ASAP and/or VEP, as specified in config)
+  if ['asap', 'both'].include?(annotator)
+    cmd.add_asap(vcf_file: cmd.add_genes_result,
+                         out_file_prefix: FILE_PREFIX,
+                         asap_path: CONFIG['third_party']['asap']['path'],
+                         ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+                         ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+                         fasta: CONFIG['third_party']['asap']['fasta'])
+  end
+  if ['vep', 'both'].include?(annotator)
+    cmd.add_vep(vcf_file: cmd.add_genes_result,
+                 out_file_prefix: FILE_PREFIX,
+                 vep_path: CONFIG['third_party']['vep']['path'],
+                 vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+               )
+  end
+  
+  # Add final pathogenicity
+  cmd.finalize_pathogenicity(vcf_file: cmd.add_genes_result,
+                             out_file_prefix: FILE_PREFIX,
+                             clinical_labels: CONFIG['clinical_labels'],
+                             enable_benign_star: CONFIG['enable_benign_star'])
+  
 else
   if include_dbNSFP && true == include_dbNSFP
     log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
@@ -76,26 +100,17 @@ else
     log.warning("Prediction annotating with dbNSFP implicitly. dbNSFP did not have an include tag in config.yml")
   else
     log.warning("Prediction annotating with dbNSFP implicitly...Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include dbNSFP (include: true) or not (include: false)")
-  end           
+  end   
+          
   # Annotate with dbNSFP
   cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                       vcf_file: cmd.add_genes_result,
                       bed_file: merged_bed_file,
                       out_file_prefix: FILE_PREFIX,
                       clinical_labels: CONFIG['clinical_labels'])
-end
-# --------------------------
                       
-# Add HGVS notation (using ASAP and/or VEP, as specified in config)
-if ['asap', 'both'].include?(annotator)
-  if !include_dbnsfp && false == include_dbnsfp
-    cmd.add_asap(vcf_file: cmd.add_genes_result,
-                   out_file_prefix: FILE_PREFIX,
-                   asap_path: CONFIG['third_party']['asap']['path'],
-                   ref_flat: CONFIG['third_party']['asap']['ref_flat'],
-                   ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
-                   fasta: CONFIG['third_party']['asap']['fasta'])
-  else
+  # Add HGVS notation (using ASAP and/or VEP, as specified in config)
+  if ['asap', 'both'].include?(annotator)
     cmd.add_asap(vcf_file: cmd.add_predictions_result,
                    out_file_prefix: FILE_PREFIX,
                    asap_path: CONFIG['third_party']['asap']['path'],
@@ -103,27 +118,47 @@ if ['asap', 'both'].include?(annotator)
                    ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
                    fasta: CONFIG['third_party']['asap']['fasta'])
   end
+  if ['vep', 'both'].include?(annotator)
+    cmd.add_vep(vcf_file: cmd.add_predictions_result,
+                 out_file_prefix: FILE_PREFIX,
+                 vep_path: CONFIG['third_party']['vep']['path'],
+                 vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+               )
+  end
+  
+  # Add final pathogenicity
+  cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
+                             out_file_prefix: FILE_PREFIX,
+                             clinical_labels: CONFIG['clinical_labels'],
+                             enable_benign_star: CONFIG['enable_benign_star'])
+end
+
+                      
+## Add HGVS notation (using ASAP and/or VEP, as specified in config)
+#if ['asap', 'both'].include?(annotator)
 #  cmd.add_asap(vcf_file: cmd.add_predictions_result,
+#                 out_file_prefix: FILE_PREFIX,
+#                 asap_path: CONFIG['third_party']['asap']['path'],
+#                 ref_flat: CONFIG['third_party']['asap']['ref_flat'],
+#                 ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
+#                 fasta: CONFIG['third_party']['asap']['fasta'])
+#end
+#if ['vep', 'both'].include?(annotator)
+#  cmd.add_vep(vcf_file: cmd.add_predictions_result,
 #               out_file_prefix: FILE_PREFIX,
-#               asap_path: CONFIG['third_party']['asap']['path'],
-#               ref_flat: CONFIG['third_party']['asap']['ref_flat'],
-#               ref_seq_ali: CONFIG['third_party']['asap']['ref_seq_ali'],
-#               fasta: CONFIG['third_party']['asap']['fasta'])
-end
-if ['vep', 'both'].include?(annotator)
-  cmd.add_vep(vcf_file: cmd.add_predictions_result,
-               out_file_prefix: FILE_PREFIX,
-               vep_path: CONFIG['third_party']['vep']['path'],
-               vep_cache_path: CONFIG['third_party']['vep']['cache_path']
-             )
-end
+#               vep_path: CONFIG['third_party']['vep']['path'],
+#               vep_cache_path: CONFIG['third_party']['vep']['cache_path']
+#             )
+#end
+#
+## Add final pathogenicity
+#cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
+#                           out_file_prefix: FILE_PREFIX,
+#                           clinical_labels: CONFIG['clinical_labels'],
+#                           enable_benign_star: CONFIG['enable_benign_star'])
 
-# Add final pathogenicity
-cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
-                           out_file_prefix: FILE_PREFIX,
-                           clinical_labels: CONFIG['clinical_labels'],
-                           enable_benign_star: CONFIG['enable_benign_star'])
-
+# --------------------------
+                             
 # TODO Re-header
 
 # Run tests
