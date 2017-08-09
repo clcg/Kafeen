@@ -88,7 +88,7 @@ if !include_dbnsfp && false == include_dbnsfp
   end
   
   # Add final pathogenicity
-  cmd.finalize_pathogenicity(vcf_file: cmd.add_genes_result,
+  cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
                              out_file_prefix: FILE_PREFIX,
                              clinical_labels: CONFIG['clinical_labels'],
                              enable_benign_star: CONFIG['enable_benign_star'])
@@ -96,7 +96,7 @@ if !include_dbnsfp && false == include_dbnsfp
   
   # Run tests
   if TEST_MODE
-    cmd.test(vcf_file: cmd.add_genes_result,
+    cmd.test(vcf_file: cmd.add_predictions_result,
              assertion_tags: CONFIG['test']['assertion_tags'],
              out_file_prefix: FILE_PREFIX)
   end
