@@ -92,6 +92,14 @@ if !include_dbnsfp && false == include_dbnsfp
                              out_file_prefix: FILE_PREFIX,
                              clinical_labels: CONFIG['clinical_labels'],
                              enable_benign_star: CONFIG['enable_benign_star'])
+  # TODO Re-header
+  
+  # Run tests
+  if TEST_MODE
+    cmd.test(vcf_file: cmd.add_genes_result,
+             assertion_tags: CONFIG['test']['assertion_tags'],
+             out_file_prefix: FILE_PREFIX)
+  end
   
 else
   if include_dbNSFP && true == include_dbNSFP
@@ -131,6 +139,15 @@ else
                              out_file_prefix: FILE_PREFIX,
                              clinical_labels: CONFIG['clinical_labels'],
                              enable_benign_star: CONFIG['enable_benign_star'])
+  # TODO Re-header
+  
+  # Run tests
+  if TEST_MODE
+    cmd.test(vcf_file: cmd.add_predictions_result,
+             assertion_tags: CONFIG['test']['assertion_tags'],
+             out_file_prefix: FILE_PREFIX)
+  end
+                             
 end
 
                       
@@ -159,11 +176,11 @@ end
 
 # --------------------------
                              
-# TODO Re-header
-
-# Run tests
-if TEST_MODE
-  cmd.test(vcf_file: cmd.add_predictions_result,
-           assertion_tags: CONFIG['test']['assertion_tags'],
-           out_file_prefix: FILE_PREFIX)
-end
+## TODO Re-header
+#
+## Run tests
+#if TEST_MODE
+#  cmd.test(vcf_file: cmd.add_predictions_result,
+#           assertion_tags: CONFIG['test']['assertion_tags'],
+#           out_file_prefix: FILE_PREFIX)
+#end
