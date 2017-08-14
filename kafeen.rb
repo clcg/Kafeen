@@ -102,7 +102,7 @@ if !include_dbnsfp && false == include_dbnsfp
   end
   
 else
-  if include_dbNSFP && true == include_dbNSFP
+  if include_dbnsfp && true == include_dbnsfp
     log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
   elsif !CONFIG['annotation_files']['dbnsfp']['include']
     log.warning("Prediction annotating with dbNSFP implicitly. dbNSFP did not have an include tag in config.yml")
