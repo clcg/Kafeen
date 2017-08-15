@@ -656,7 +656,7 @@ class Command
 
     @@log.info("Removing tmp files...")
     File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
-    File.unlink(dbnsfp_subset_file) if File.exist?(dbnsfp_subset_file)
+    File.unlink(set_file) if File.exist?(set_file)
     File.unlink("#{set_file}.csi") if File.exist?("#{set_file}.csi")
     @@log.info("Done removing tmp files")
   end
