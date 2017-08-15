@@ -482,7 +482,7 @@ class Command
     `bcftools view \
        --regions-file #{bed_file} \
        --output-type b \
-       --output-file #{set_file} \
+       --output-file #{set_file}'
        #{dbnsfp_file['filename']}`
     @@log.info("set written to #{set_file}")
 
