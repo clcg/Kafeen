@@ -67,6 +67,9 @@ cmd.add_genes(bed_file: bed_file,
               
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
 if !include_dbnsfp && false == include_dbnsfp
+  
+  # excluding dbnsfp
+  
   log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
 #  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
   
@@ -88,7 +91,7 @@ if !include_dbnsfp && false == include_dbnsfp
   end
   
   # Add final pathogenicity
-  cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
+  cmd.finalize_pathogenicity(vcf_file: cmd.add_genes_result,
                              out_file_prefix: FILE_PREFIX,
                              clinical_labels: CONFIG['clinical_labels'],
                              enable_benign_star: CONFIG['enable_benign_star'])
@@ -102,6 +105,9 @@ if !include_dbnsfp && false == include_dbnsfp
   end
   
 else
+  
+  # include dbnsfp
+  
   if include_dbnsfp && true == include_dbnsfp
     log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
   elsif !CONFIG['annotation_files']['dbnsfp']['include']
