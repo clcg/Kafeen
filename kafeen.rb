@@ -70,12 +70,18 @@ if !include_dbnsfp && false == include_dbnsfp
   
   # excluding dbnsfp
   
-  log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation with dbNSFP")
+  log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation/prediction with dbNSFP annotator. This may take some time")
 #  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
+  
+  # Annotate Generic (no dbnsfp subset)
+  cmd.add_predictions_without_dbnsfp(vcf_file: cmd.add_genes_result,
+                      bed_file: merged_bed_file,
+                      out_file_prefix: FILE_PREFIX,
+                      clinical_labels: CONFIG['clinical_labels'])
   
   # Add HGVS notation (using ASAP and/or VEP, as specified in config)
   if ['asap', 'both'].include?(annotator)
-    cmd.add_asap(vcf_file: cmd.add_genes_result,
+    cmd.add_asap(vcf_file: cmd.add_predictions_result,
                          out_file_prefix: FILE_PREFIX,
                          asap_path: CONFIG['third_party']['asap']['path'],
                          ref_flat: CONFIG['third_party']['asap']['ref_flat'],
@@ -83,7 +89,7 @@ if !include_dbnsfp && false == include_dbnsfp
                          fasta: CONFIG['third_party']['asap']['fasta'])
   end
   if ['vep', 'both'].include?(annotator)
-    cmd.add_vep(vcf_file: cmd.add_genes_result,
+    cmd.add_vep(vcf_file: cmd.add_predictions_result,
                  out_file_prefix: FILE_PREFIX,
                  vep_path: CONFIG['third_party']['vep']['path'],
                  vep_cache_path: CONFIG['third_party']['vep']['cache_path']

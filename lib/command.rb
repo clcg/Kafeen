@@ -461,6 +461,203 @@ class Command
     File.unlink("#{dbnsfp_subset_file}.csi") if File.exist?("#{dbnsfp_subset_file}.csi")
     @@log.info("Done removing tmp files")
   end
+  
+##
+  # Add predictions (generic, ie. excluded dbnsfp
+  #@author: Robert Marini
+  ##
+  def add_predictions_without_dbnsfp(vcf_file:, bed_file:, out_file_prefix:, clinical_labels:)
+    # Set custom VCF tags to be added to output
+    
+    @gerp_pred_tag = "GEN_GERP_PRED"
+    @phylop20way_mammalian_pred_tag = "GEN_PHYLOP20WAY_MAMMALIAN_PRED"
+    @num_path_preds_tag = "NUM_PATH_PREDS"
+    @total_num_preds_tag = "TOTAL_NUM_PREDS"
+    @final_pred_tag = "FINAL_PRED"
+    
+    # Get all regions
+    
+    #@@log.info("Subsetting dbNSFP for faster annotation...")
+    set_file = "#{out_file_prefix}.set.tmp.bcf.gz"
+    `bcftools view \
+       --regions-file #{bed_file} \
+       --output-type b \
+       --output-file #{set_file} \
+       #{dbnsfp_file['filename']}`
+    @@log.info("set written to #{set_file}")
+
+    # Create index
+    @@log.info("Creating index file for #{set_file}...")
+    `bcftools index --force --csi #{set_file}`
+    @@log.info("Done creating index file")
+
+    # Add dbNSFP predictions
+    tmp_output_file = "#{out_file_prefix}.tmp.vcf"
+    @@log.info("Adding predictions to #{tmp_output_file}...")
+    File.open(tmp_output_file, 'w') do |f|
+    `bcftools annotate \
+       --annotations #{set_file} \
+       --output-type v \
+       #{vcf_file}`
+    .each_line do |vcf_row|
+         vcf_row.chomp!
+         if vcf_row.match(/^##/)
+           # Print meta-info
+           f.puts vcf_row
+         elsif vcf_row.match(/^#[^#]/)
+           # Add custom INFO tags
+           f.puts "##INFO=<ID=#{@num_path_preds_tag},Number=.,Type=String,Description=\"Number of pathogenic predictions\">"
+           f.puts "##INFO=<ID=#{@total_num_preds_tag},Number=.,Type=String,Description=\"Total number of prediction scores available\">"
+           f.puts "##INFO=<ID=#{@final_pred_tag},Number=.,Type=String,Description=\"Final prediction consensus based on majority vote of prediction scores\">"
+
+           
+           # Add GERP++ prediction tag to meta-info
+           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
+             f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
+           end
+           # Add phyloP20way mammalian prediction tag to meta-info
+           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
+             f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
+           end
+           # Print header (i.e. "CHROM  POS  ID ...")
+           f.puts vcf_row
+         else
+           vcf_cols = vcf_row.split("\t")
+
+           # Analyze each *_PRED field (as well as GERP++ and phyloP)
+           # Tally up pathogenic predictions
+           output = {}
+           output[:total_num_preds] = 0
+           output[:num_path_preds] = 0
+           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
+             # Get all predictions for this algorithm
+             match = vcf_row.get_vcf_field(field)
+
+             # No data for this algorithm -- skip it
+             next if match.empty?
+
+             # Get all predictions for this algorithm
+             preds = match.split(/[^a-zA-Z0-9.-]+/)
+
+             # No data for this algorithm -- skip it
+             next if preds.all? { |pred| pred == '.' || pred == 'U' }
+               
+             if field == 'SIFT_PRED'
+               # SIFT prediction
+               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
+               output[:total_num_preds] += 1
+             elsif field == 'POLYPHEN2_HDIV_PRED'
+               # Polyphen2 (HDIV) prediction
+               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
+               output[:total_num_preds] += 1
+             elsif field == 'LRT_PRED'
+               # LRT prediction
+               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
+               output[:total_num_preds] += 1
+             elsif field == 'MUTATIONTASTER_PRED'
+               # MutationTaster prediction
+               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
+               output[:total_num_preds] += 1
+             elsif field == 'GERP_RS'
+               # GERP++ prediction
+               if preds.any? { |pred| pred.to_f > 0.0 }
+                 # Conserved
+                 output[:num_path_preds] += 1
+                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=C"].join(";")
+               else
+                 # Non-conserved
+                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
+               end
+               output[:total_num_preds] += 1
+             elsif field == 'GEN_PHYLOP20WAY_MAMMALIAN'
+               # phyloP20way mammalian prediction
+               # TODO: The cutoff should be changed from 0.95 to 1.0
+               if preds.any? { |pred| pred.to_f >= 0.95 }
+                 # Conserved
+                 output[:num_path_preds] += 1
+                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=C"].join(";")
+               else
+                 # Non-conserved
+                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=N"].join(";")
+               end
+               output[:total_num_preds] += 1
+             end
+           end
+
+           # Add final prediction
+           if output[:total_num_preds] == 0
+             # No predictions available
+             output[:final_pred] = '.'
+             output[:num_path_preds] = '.'
+             output[:total_num_preds] = '.'
+           elsif output[:total_num_preds] >= 5
+             path_score = output[:num_path_preds].to_f/output[:total_num_preds].to_f
+             if path_score >= 0.6
+               # Predicted pathogenic
+               output[:final_pred] = clinical_labels['pred_pathogenic']
+             elsif path_score <= 0.4
+               # Predicted benign
+               output[:final_pred] = clinical_labels['pred_benign']
+             else
+               # Predicted unknown (benign predictions approx. equal to pathogenic)
+               output[:final_pred] = clinical_labels['unknown']
+             end
+           else
+             # Predicted unknown (not enough predictions)
+             output[:final_pred] = clinical_labels['unknown']
+           end
+
+           # Remove illegal characters and set all empty values to '.'
+           output.each do |k, v|
+             next if output[k] == '.'
+             if v.to_s.strip.empty?
+               output[k] = '.'
+             else
+               output[k] = URI.escape(output[k].to_s, ';,= ')
+             end
+           end
+
+           # Update INFO column
+           if output[:total_num_preds] != 0 && output[:total_num_preds] != '.'
+             vcf_cols[7] = [
+               vcf_cols[7], 
+               "#{@num_path_preds_tag}=#{output[:num_path_preds]}",
+               "#{@total_num_preds_tag}=#{output[:total_num_preds]}", 
+               "#{@final_pred_tag}=#{output[:final_pred]}",
+             ].join(";")
+           end
+
+           # Print updated VCF row
+           f.puts vcf_cols.join("\t")
+         end
+       end
+    end # <-- End printing output file
+    
+    @@log.info("Predictions added to #{tmp_output_file}")
+
+    @add_predictions_result = "#{out_file_prefix}.vcf.gz"
+    @@log.info("Compressing #{tmp_output_file}")
+    # Compress the output file
+    `bcftools view \
+       --output-type z \
+       --output-file #{@add_predictions_result} \
+       #{tmp_output_file}`
+    @@log.info("Compressed output written to #{@add_predictions_result}...")
+
+    # Index output file
+    @@log.info("Indexing #{@add_predictions_result}...")
+    `bcftools index  \
+       --force \
+       --tbi \
+       #{@add_predictions_result}`
+    @@log.info("Done creating index file")
+
+    @@log.info("Removing tmp files...")
+    File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
+    File.unlink(dbnsfp_subset_file) if File.exist?(dbnsfp_subset_file)
+    File.unlink("#{set_file}.csi") if File.exist?("#{set_file}.csi")
+    @@log.info("Done removing tmp files")
+  end
 
   def _get_asap_variant(chr, pos, ref, alt)
     pos = pos.to_i
