@@ -732,7 +732,9 @@ class Command
 
                   # Must use -1 limit or trailing empty fields will be excluded
                   vep_fields = transcript.split("|", -1)
-                  # specifically looking at feature vs HGVS nomenclature because the HGVS nomenclature may not be set for upstream/downstream variants or other secnearios.
+                  # specifically looking at feature vs HGVS nomenclature because
+                  # the HGVS nomenclature may not be set for upstream/downstream
+                  # variants or other secnearios.
                   vep_feature = vep_fields[vep_feature_index]
                   if vep_feature.start_with?("X")
                        score = score + 100000
@@ -763,15 +765,8 @@ class Command
                   vep_sift_raw = vep_fields[vep_sift_index]
                   if !vep_sift_raw.nil? && !vep_sift_raw.empty?
                         score = score + 100
-                        #if (vep_sift_raw == 1)
-                        #  @@log.info("SIFT_RAW == 1 ERROR?" + vep_sift_raw)
-                        #  print vep_fields
-                        #end
                         vep_sift_score = vep_sift_raw.gsub(/[{()}]/, " ").split(" ")[1]
                         vep_sift_pred_parts = vep_sift_raw.split("(")[0].split("_")
-                        #if  vep_sift_score.to_f <= 0.05 
-                        #     score = score + 100
-                        #end
                         vep_sift_pred = vep_sift_pred_parts[0].upcase[0,1]
                         if vep_sift_pred_parts.length > 1
                             vep_sift_confidence = vep_sift_pred_parts[1].upcase[0,1] + "C"
@@ -779,21 +774,18 @@ class Command
                         end
                         if vep_sift_pred == "D" || vep_sift_pred == "D-LC" 
                           score = score + 100
-			end
+                        end
                   end 
                   vep_polyphen_raw = vep_fields[vep_polyphen_index]
                   if !vep_polyphen_raw.nil? && !vep_polyphen_raw.empty?
                       score = score + 100
                       vep_polyphen_score = vep_polyphen_raw.gsub(/[{()}]/, " ").split(" ")[1]
                       vep_polyphen_pred_parts = vep_polyphen_raw.split("(")[0].split("_")
-                      #if vep_polyphen_score.to_f >= 0.453
-                      #    score = score + 100
-                      #end
                       vep_polyphen_pred = vep_polyphen_pred_parts[0].upcase[0,1]
                       if vep_polyphen_pred == "P"
                           score = score + 100
-                      end 
-		 end
+                      end
+                  end
 
                   vep_canonical = vep_fields[vep_canonical_index]
                   if !vep_canonical.empty?
