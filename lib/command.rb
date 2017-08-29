@@ -645,7 +645,7 @@ class Command
     @vep_polyphen_pred_tag = 'VEP_POLYPHEN_PRED'
     @vep_impact_tag = 'VEP_IMPACT'
     @vep_feature_tag = 'VEP_FEATURE'
-    @vep_protien_pos_tag = 'VEP_PROTIEN_POS'
+    @vep_protein_pos_tag = 'VEP_PROTEIN_POS'
     @vep_cadd_raw_tag = 'VEP_CADD_RAW'
     @vep_cadd_phred_tag = 'VEP_CADD_PHRED'
     @vep_all_features_tag = 'VEP_OTHER_FEATURES'
@@ -671,7 +671,7 @@ class Command
     vep_pick_index = -1
     vep_canonical_index = -1
     vep_feature_index = -1
-    vep_protien_pos_index = -1
+    vep_protein_pos_index = -1
 
     # Intersting thread - it seemed like VEP was waiting to finish before STDOUT processing began
     # The delay is not bad for everyday runtime, but makes debugging a pain.
@@ -703,7 +703,7 @@ class Command
                 vep_pick_index = vep_header.index("PICK")
                 vep_canonical_index = vep_header.index("CANONICAL")
                 vep_feature_index = vep_header.index("Feature")
-                vep_protien_pos_index = vep_header.index("Protein_position")
+                vep_protein_pos_index = vep_header.index("Protein_position")
               end
               next
             end
@@ -728,7 +728,7 @@ class Command
                   vep_pick = ""
                   vep_canonical = ""
                   vep_feature = ""
-                  vep_protien_pos = ""
+                  vep_protein_pos = ""
 
                   # Must use -1 limit or trailing empty fields will be excluded
                   vep_fields = transcript.split("|", -1)
@@ -805,7 +805,7 @@ class Command
                       score = score+1
                   end
 
-                  vep_protien_pos = vep_fields[vep_protien_pos_index]
+                  vep_protein_pos = vep_fields[vep_protein_pos_index]
 
                   if score > pick_score
                     pick_csq = transcript
@@ -819,7 +819,7 @@ class Command
 
                   end
 
-                  feature_info = [vep_feature,vep_protien_pos,vep_sift_raw,vep_polyphen_raw,score].join("|")
+                  feature_info = [vep_feature,vep_protein_pos,vep_sift_raw,vep_polyphen_raw,score].join("|")
                   all_features.push(feature_info)
                 end
                 # Have final csq to use - log it. 
@@ -876,23 +876,23 @@ class Command
       "##INFO=<ID=#{@vep_intron_tag},Number=1,Type=String,Description=\"VEP intron numbering. Format is Number\/Total.\">",
       "##INFO=<ID=#{@vep_hgvs_c_tag},Number=1,Type=String,Description=\"VEP HGVS coding sequence names based on Ensembl stable identifiers.\">",
       "##INFO=<ID=#{@vep_hgvs_p_tag},Number=1,Type=String,Description=\"VEP HGVS protein sequence names based on Ensembl stable identifiers.\">",
-      "##INFO=<ID=#{@vep_protien_pos_tag},Number=1,Type=String,Description=\"VEP variant consequence type.\">",
+      "##INFO=<ID=#{@vep_protein_pos_tag},Number=1,Type=String,Description=\"VEP variant consequence type.\">",
       "##INFO=<ID=#{@vep_cadd_phred_tag},Number=1,Type=String,Description=\"VEP annotated CADD phred scaled score.\">",
       "##INFO=<ID=#{@vep_cadd_raw_tag},Number=1,Type=String,Description=\"VEP annotated CADD raw score.\">",
       "##INFO=<ID=#{@vep_sift_score_tag},Number=1,Type=String,Description=\"VEP annotated SIFT score.\">",
       "##INFO=<ID=#{@vep_sift_pred_tag},Number=1,Type=String,Description=\"VEP annotated SIFT prediction.\">",
       "##INFO=<ID=#{@vep_polyphen_score_tag},Number=1,Type=String,Description=\"VEP annotated POLYPHEN score.\">",
       "##INFO=<ID=#{@vep_polyphen_pred_tag},Number=1,Type=String,Description=\"VEP annotated POLYPHEN prediction.\">",
-      "##INFO=<ID=#{@vep_all_features_tag},Number=1,Type=String,Description=\"All VEP features, comma seperated list: Feature|ProtienPos|SIFT|PolyPhen|InternalDVDScore.\">",
+      "##INFO=<ID=#{@vep_all_features_tag},Number=1,Type=String,Description=\"All VEP features, comma seperated list: Feature|ProteinPos|SIFT|PolyPhen|InternalDVDScore.\">",
     ].join("\n") + "\n"
 
     File.open(tmp_vep_header, 'w') { |f| f.write(header) }
-    @@log.info("VEP VCF header file written to #{tmp_vep_header}.")
+    @@log.info("VEP VCF header file written to #{tmp_vep_header}")
 
     # ANN TODO: Need to add CADD scoring here
     `bcftools annotate \
        --annotations #{tmp_vep_output}.gz \
-       --columns CHROM,POS,REF,ALT,#{@vep_consequence_tag},#{@vep_impact_tag},#{@vep_feature_tag},#{@vep_exon_tag},#{@vep_intron_tag},#{@vep_hgvs_c_tag},#{@vep_hgvs_p_tag},#{@vep_protien_pos_tag},#{@vep_cadd_phred_tag},#{@vep_cadd_raw_tag},#{@vep_sift_score_tag},#{@vep_sift_pred_tag},#{@vep_polyphen_score_tag},#{@vep_polyphen_pred_tag},#{@vep_all_features_tag} \
+       --columns CHROM,POS,REF,ALT,#{@vep_consequence_tag},#{@vep_impact_tag},#{@vep_feature_tag},#{@vep_exon_tag},#{@vep_intron_tag},#{@vep_hgvs_c_tag},#{@vep_hgvs_p_tag},#{@vep_protein_pos_tag},#{@vep_cadd_phred_tag},#{@vep_cadd_raw_tag},#{@vep_sift_score_tag},#{@vep_sift_pred_tag},#{@vep_polyphen_score_tag},#{@vep_polyphen_pred_tag},#{@vep_all_features_tag} \
        --header-lines #{tmp_vep_header} \
        --output #{tmp_vep_output_vcf} \
        --output-type z \
