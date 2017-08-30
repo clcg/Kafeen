@@ -508,7 +508,6 @@ class Command
     @@log.info("Adding predictions to #{tmp_output_file}...")
     File.open(tmp_output_file, 'w') do |f|
     `bcftools annotate \
-       --annotations #{set_file} \
        --output-type v \
        #{vcf_file}`
     .each_line do |vcf_row|
