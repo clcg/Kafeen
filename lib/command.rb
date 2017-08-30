@@ -490,13 +490,13 @@ class Command
     
     # Get all regions
     @@log.info("Not subsetting dbNSFP for faster annotation...")
-    set_file = "#{out_file_prefix}.dbNSFP_subset.tmp.bcf.gz"
-    `bcftools view \
-       --regions-file #{bed_file} \
-       --output-type b \
-       --output-file #{set_file} \
-       #{set_file['filename']}`
-    @@log.info("Set written to #{set_file}")
+    set_file = "#{out_file_prefix}.set.tmp.bcf.gz"
+#    `bcftools view \
+#       --regions-file #{bed_file} \
+#       --output-type b \
+#       --output-file #{set_file} \
+#       #{set_file['filename']}`
+#    @@log.info("Set written to #{set_file}")
 
     # Create index
     @@log.info("Creating index file for #{set_file}...")
@@ -523,14 +523,14 @@ class Command
            f.puts "##INFO=<ID=#{@final_pred_tag},Number=.,Type=String,Description=\"Final prediction consensus based on majority vote of prediction scores\">"
 
            
-           # Add GERP++ prediction tag to meta-info
-           if set_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
-             f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
-           end
-           # Add phyloP20way mammalian prediction tag to meta-info
-           if set_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
-             f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
-           end
+#           # Add GERP++ prediction tag to meta-info
+#           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
+#             f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
+#           end
+#           # Add phyloP20way mammalian prediction tag to meta-info
+#           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
+#             f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
+#           end
            # Print header (i.e. "CHROM  POS  ID ...")
            f.puts vcf_row
          else
@@ -541,60 +541,60 @@ class Command
            output = {}
            output[:total_num_preds] = 0
            output[:num_path_preds] = 0
-           set_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
-             # Get all predictions for this algorithm
-             match = vcf_row.get_vcf_field(field)
-
-             # No data for this algorithm -- skip it
-             next if match.empty?
-
-             # Get all predictions for this algorithm
-             preds = match.split(/[^a-zA-Z0-9.-]+/)
-
-             # No data for this algorithm -- skip it
-             next if preds.all? { |pred| pred == '.' || pred == 'U' }
-               
-             if field == 'SIFT_PRED'
-               # SIFT prediction
-               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
-               output[:total_num_preds] += 1
-             elsif field == 'POLYPHEN2_HDIV_PRED'
-               # Polyphen2 (HDIV) prediction
-               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
-               output[:total_num_preds] += 1
-             elsif field == 'LRT_PRED'
-               # LRT prediction
-               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
-               output[:total_num_preds] += 1
-             elsif field == 'MUTATIONTASTER_PRED'
-               # MutationTaster prediction
-               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
-               output[:total_num_preds] += 1
-             elsif field == 'GERP_RS'
-               # GERP++ prediction
-               if preds.any? { |pred| pred.to_f > 0.0 }
-                 # Conserved
-                 output[:num_path_preds] += 1
-                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=C"].join(";")
-               else
-                 # Non-conserved
-                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
-               end
-               output[:total_num_preds] += 1
-             elsif field == 'GEN_PHYLOP20WAY_MAMMALIAN'
-               # phyloP20way mammalian prediction
-               # TODO: The cutoff should be changed from 0.95 to 1.0
-               if preds.any? { |pred| pred.to_f >= 0.95 }
-                 # Conserved
-                 output[:num_path_preds] += 1
-                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=C"].join(";")
-               else
-                 # Non-conserved
-                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=N"].join(";")
-               end
-               output[:total_num_preds] += 1
-             end
-           end
+#           set_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
+#             # Get all predictions for this algorithm
+#             match = vcf_row.get_vcf_field(field)
+#
+#             # No data for this algorithm -- skip it
+#             next if match.empty?
+#
+#             # Get all predictions for this algorithm
+#             preds = match.split(/[^a-zA-Z0-9.-]+/)
+#
+#             # No data for this algorithm -- skip it
+#             next if preds.all? { |pred| pred == '.' || pred == 'U' }
+#               
+#             if field == 'SIFT_PRED'
+#               # SIFT prediction
+#               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
+#               output[:total_num_preds] += 1
+#             elsif field == 'POLYPHEN2_HDIV_PRED'
+#               # Polyphen2 (HDIV) prediction
+#               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
+#               output[:total_num_preds] += 1
+#             elsif field == 'LRT_PRED'
+#               # LRT prediction
+#               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
+#               output[:total_num_preds] += 1
+#             elsif field == 'MUTATIONTASTER_PRED'
+#               # MutationTaster prediction
+#               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
+#               output[:total_num_preds] += 1
+#             elsif field == 'GERP_RS'
+#               # GERP++ prediction
+#               if preds.any? { |pred| pred.to_f > 0.0 }
+#                 # Conserved
+#                 output[:num_path_preds] += 1
+#                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=C"].join(";")
+#               else
+#                 # Non-conserved
+#                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
+#               end
+#               output[:total_num_preds] += 1
+#             elsif field == 'GEN_PHYLOP20WAY_MAMMALIAN'
+#               # phyloP20way mammalian prediction
+#               # TODO: The cutoff should be changed from 0.95 to 1.0
+#               if preds.any? { |pred| pred.to_f >= 0.95 }
+#                 # Conserved
+#                 output[:num_path_preds] += 1
+#                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=C"].join(";")
+#               else
+#                 # Non-conserved
+#                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=N"].join(";")
+#               end
+#               output[:total_num_preds] += 1
+#             end
+#           end
 
            # Add final prediction
            if output[:total_num_preds] == 0
