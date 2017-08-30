@@ -490,8 +490,8 @@ class Command
     
     # Get all regions
     
-    #@@log.info("Subsetting dbNSFP for faster annotation...")
-    set_file = "#{out_file_prefix}.set.tmp.bcf.gz"
+    @@log.info("Not subsetting dbNSFP for faster annotation...")
+    set_file = "#{out_file_prefix}.subset.tmp.bcf.gz"
     `bcftools view \
        --regions-file #{bed_file} \
        --output-type b \
