@@ -488,8 +488,8 @@ class Command
     @total_num_preds_tag = "TOTAL_NUM_PREDS"
     @final_pred_tag = "FINAL_PRED"
     
-    # Get all regions
-    @@log.info("Not subsetting dbNSFP for faster annotation...")
+#    # Get all regions
+#    @@log.info("Not subsetting dbNSFP for faster annotation...")
     set_file = "#{out_file_prefix}.set.tmp.bcf.gz"
 #    `bcftools view \
 #       --regions-file #{bed_file} \
@@ -498,10 +498,10 @@ class Command
 #       #{set_file['filename']}`
 #    @@log.info("Set written to #{set_file}")
 
-    # Create index
-    @@log.info("Creating index file for #{set_file}...")
-    `bcftools index --force --csi #{set_file}`
-    @@log.info("Done creating index file")
+#    # Create index
+#    @@log.info("Creating index file for #{set_file}...")
+#    `bcftools index --force --csi #{set_file}`
+#    @@log.info("Done creating index file")
 
     # Add dbNSFP predictions
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
