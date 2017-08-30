@@ -91,10 +91,10 @@ if !include_dbnsfp && false == include_dbnsfp
     end
     
   # Annotate Generic (no dbnsfp subset)
-#    cmd.add_predictions_without_dbnsfp(vcf_file: cmd.add_genes_result,
-#                        bed_file: merged_bed_file,
-#                        out_file_prefix: FILE_PREFIX,
-#                        clinical_labels: CONFIG['clinical_labels'])
+    cmd.add_predictions_without_dbnsfp(vcf_file: cmd.add_genes_result,
+                        bed_file: merged_bed_file,
+                        out_file_prefix: FILE_PREFIX,
+                        clinical_labels: CONFIG['clinical_labels'])
   
   # Add final pathogenicity
   cmd.finalize_pathogenicity(vcf_file: cmd.add_predictions_result,
