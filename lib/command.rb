@@ -510,6 +510,7 @@ class Command
     File.open(tmp_output_file, 'w') do |f|
     `bcftools annotate \
        --annotations #{set_file} \
+       --columns #{set_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
        --output-type v \
        #{vcf_file}`
     .each_line do |vcf_row|
@@ -525,11 +526,11 @@ class Command
 
            
            # Add GERP++ prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
+           if set_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
              f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Add phyloP20way mammalian prediction tag to meta-info
-           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
+           if set_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
              f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
            end
            # Print header (i.e. "CHROM  POS  ID ...")
@@ -542,7 +543,7 @@ class Command
            output = {}
            output[:total_num_preds] = 0
            output[:num_path_preds] = 0
-           dbnsfp_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
+           set_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
              # Get all predictions for this algorithm
              match = vcf_row.get_vcf_field(field)
 
