@@ -161,7 +161,7 @@ enable_benign_star: true
 ##
 third_party:
   # ASAP annotation tool
-  annotator: 'asap'  # Which annotator to use. Options are "asap", "vep", and "both".
+  annotator: 'both'  # Which annotator to use. Options are "asap", "vep", and "both".
   asap:
     path: '/Shared/MORL/Tools/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
     ref_flat: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refFlat.20130302.txt.gz'
@@ -169,9 +169,9 @@ third_party:
     fasta: '/Shared/MORL/Reference/Annotation_Databases/ASAP/hg19_and_random_gatk.fa'
   #VEP annotation tool
   vep:
-    path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/variant_effect_predictor.pl'
-    cache_path: '/Shared/MORL/Tools/ensembl-tools-release-84/scripts/variant_effect_predictor/cache-dir'
-
+    path: '/Shared/MORL/Tools/ensembl-vep-release-88/vep' 
+    cache_path: '/Shared/MORL/Tools/ensembl-vep-release-88/cache-dir' 
+    config_path: '/Shared/MORL/Analysis/bcrone/kafeen/config/vep_config.ini'
 ##
 # Test
 #

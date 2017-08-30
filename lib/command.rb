@@ -342,15 +342,29 @@ class Command
              # Get all predictions for this algorithm
              preds = match.split(/[^a-zA-Z0-9.-]+/)
 
+             if field == 'DBNSFP_SIFT_PRED' 
+               vep_sift_pred = vcf_row.get_vcf_field(@vep_sift_pred_tag)
+               if !vep_sift_pred.empty?
+                  preds = vep_sift_pred.split(/[^a-zA-Z0-9.-]+/)
+               end
+             else field == 'DBNSFP_SIFT_PRED'
+               vep_poly_pred = vcf_row.get_vcf_field(@vep_polyphen_pred_tag)
+               if !vep_poly_pred.empty?
+                  preds = vep_poly_pred.split(/[^a-zA-Z0-9.-]+/)
+               end
+             end
+
              # No data for this algorithm -- skip it
              next if preds.all? { |pred| pred == '.' || pred == 'U' }
                
              if field == 'DBNSFP_SIFT_PRED'
                # SIFT prediction
-               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
+               # See if there is a VEP override
+               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('D-LC') # <-- "Damaging"
                output[:total_num_preds] += 1
              elsif field == 'DBNSFP_POLYPHEN2_HDIV_PRED'
                # Polyphen2 (HDIV) prediction
+               # See if there is a VEP override
                output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
                output[:total_num_preds] += 1
              elsif field == 'DBNSFP_LRT_PRED'
@@ -374,7 +388,6 @@ class Command
                output[:total_num_preds] += 1
              elsif field == 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
                # phyloP20way mammalian prediction
-               # TODO: The cutoff should be changed from 0.95 to 1.0
                if preds.any? { |pred| pred.to_f >= 0.95 }
                  # Conserved
                  output[:num_path_preds] += 1
@@ -826,61 +839,227 @@ class Command
   end
 
 
-  def add_vep(vcf_file:, out_file_prefix:, vep_path:, vep_cache_path:)
+  def add_vep(vcf_file:, out_file_prefix:, vep_path:, vep_cache_path:, vep_config_path:)
+
+    # Tag names as they will appear in the end DVD. 
     @vep_consequence_tag = 'VEP_CONSEQUENCE'
     @vep_exon_tag = 'VEP_EXON'
     @vep_intron_tag = 'VEP_INTRON'
     @vep_hgvs_c_tag = 'VEP_HGVS_C'
     @vep_hgvs_p_tag = 'VEP_HGVS_P'
+    @vep_sift_score_tag = 'VEP_SIFT_SCORE'
+    @vep_sift_pred_tag = 'VEP_SIFT_PRED'
+    @vep_polyphen_score_tag = 'VEP_POLYPHEN_SCORE'
+    @vep_polyphen_pred_tag = 'VEP_POLYPHEN_PRED'
+    @vep_impact_tag = 'VEP_IMPACT'
+    @vep_feature_tag = 'VEP_FEATURE'
+    @vep_protien_pos_tag = 'VEP_PROTIEN_POS'
+    @vep_cadd_raw_tag = 'VEP_CADD_RAW'
+    @vep_cadd_phred_tag = 'VEP_CADD_PHRED'
+    @vep_all_features_tag = 'VEP_OTHER_FEATURES'
 
-    @add_vep_result = "#{out_file_prefix}.vcf.gz"
+    add_vep_result = "#{out_file_prefix}.vcf.gz"
 
     # Run VEP
     # Make tsv containing relevant fields in vep output,
     # to annotate kafeen vcf with using bcftools
     tmp_vep_output = "#{out_file_prefix}.vep.out.tmp.txt"
+    vep_stats_log = "#{out_file_prefix}.vep.stats.html"
     vep_error_log = "#{out_file_prefix}.vep.errors.log"
     vep_header = nil
     @@log.info("Running VEP...")
+
+    # Header Indicies for fields used in scoring or additional processsing from VEP.  
+    # These should be set once from the VEP header line.
+    vep_hgvsc_index = -1
+    vep_hgvsp_index = -1
+    vep_impact_index = -1
+    vep_sift_index = -1
+    vep_polyphen_index = -1
+    vep_pick_index = -1
+    vep_canonical_index = -1
+    vep_feature_index = -1
+    vep_protien_pos_index = -1
+
+    # Intersting thread - it seemed like VEP was waiting to finish before STDOUT processing began
+    # The delay is not bad for everyday runtime, but makes debugging a pain.
+    # http://stackoverflow.com/questions/1154846/continuously-read-from-stdout-of-external-process-in-ruby
+    # Good flowchart: http://stackoverflow.com/questions/6338908/ruby-difference-between-exec-system-and-x-or-backticks
     File.open(tmp_vep_output, 'w') do |f|
-      `#{vep_path} \
-        -species human -refseq -format vcf -force -fork 4 -port 3337 -cache \
-        -dir #{vep_cache_path} \
-        -i #{vcf_file} -o STDOUT -vcf -hgvs -numbers -pick 2> #{vep_error_log}`
-      .each_line do |line|
-        line.chomp!
-        #@@log.info(line)
-        if line.start_with?("#")
-          if line.include? "<ID=CSQ"
-            vep_header = line.split("Format: ")[1].split("\">")[0].split("|")
-          end
-          next
-        end
-        fields = line.split("\t")
-        fields.each_with_index do |field, i|
-          if field.include? "CSQ="
-            csq = field.split("CSQ=")[1]
-            #csq.split(",").each do |transcript|
-            #transcript.split("|").each_with_index do |subfield, j|
-            csq.split("|").each_with_index do |subfield, j|
-              categ = vep_header[j]
-              if ["Consequence", "HGVSc", "HGVSp", "EXON", "INTRON"].include?(categ)
-                  f.print(subfield + "\t")
+      IO.popen("#{vep_path} -config #{vep_config_path} -i #{vcf_file} -stats_file #{vep_stats_log} -o STDOUT 2> #{vep_error_log}") do |vep|
+        vep.each do |line|
+            line.chomp!
+
+            begin
+
+            pick_csq = ""
+            pick_vep_sift_score = ""
+            pick_vep_sift_pred = ""
+            pick_vep_polyphen_score = ""
+            pick_vep_polyphen_pred = ""
+
+            pick_score = -1
+
+            if line.start_with?("#")
+              if line.include? "<ID=CSQ"
+                vep_header = line.split("Format: ")[1].split("\">")[0].split("|")
+                vep_hgvsc_index = vep_header.index("HGVSc")
+                vep_hgvsp_index = vep_header.index("HGVSp")
+                vep_impact_index = vep_header.index("IMPACT")
+                vep_sift_index = vep_header.index("SIFT")
+                vep_polyphen_index = vep_header.index("PolyPhen")
+                vep_pick_index = vep_header.index("PICK")
+                vep_canonical_index = vep_header.index("CANONICAL")
+                vep_feature_index = vep_header.index("Feature")
+                vep_protien_pos_index = vep_header.index("Protein_position")
               end
+              next
             end
-          # chrom, pos, ref, alt
-          elsif [0, 1, 3, 4].include?(i)
-              f.print(field + "\t")
-          end
+
+            all_features = []
+
+            fields = line.split("\t")
+            fields.each_with_index do |field, i|
+              if field.include? "CSQ="
+
+                csq = field.split("CSQ=")[1]
+                csq.split(",").each do |transcript|
+
+                  score = 0
+                  # Init variables to avoid nil errors
+                  vep_hgvsc = ""
+                  vep_impact = ""
+                  vep_sift_score = ""
+                  vep_sift_pred = ""
+                  vep_polyphen_score = ""
+                  vep_polyphen_pred = ""
+                  vep_pick = ""
+                  vep_canonical = ""
+                  vep_feature = ""
+                  vep_protien_pos = ""
+
+                  # Must use -1 limit or trailing empty fields will be excluded
+                  vep_fields = transcript.split("|", -1)
+                  # specifically looking at feature vs HGVS nomenclature because the HGVS nomenclature may not be set for upstream/downstream variants or other secnearios.
+                  vep_feature = vep_fields[vep_feature_index]
+                  if vep_feature.start_with?("X")
+                       score = score + 100000
+                  elsif vep_feature.start_with?("N")
+                       score = score + 300000
+                  else
+                       score = score + 200000
+                  end
+                  vep_impact = vep_fields[vep_impact_index]
+                  if vep_impact == "HIGH"
+                       score = score + 40000
+                  elsif vep_impact == "MODERATE"
+                       score = score + 30000
+                  elsif vep_impact == "LOW"
+                       score = score + 20000
+                  elsif vep_impact == "MODIFIER"
+                       score = score + 10000
+                  end
+                  vep_hgvsc = vep_fields[vep_hgvsc_index]
+                  vep_hgvsp = vep_fields[vep_hgvsp_index]
+                  if !(vep_hgvsp.to_s == '')
+                       score = score + 2000
+                  elsif !(vep_hgvsc.to_s == '')
+                       score = score + 1000
+                  end
+
+                  vep_sift_raw = vep_fields[vep_sift_index]
+                  if !vep_sift_raw.nil? && !vep_sift_raw.empty?
+                        score = score + 100
+                        if (vep_sift_raw == 1)
+                          @@log.info("SIFT_RAW == 1 ERROR?" + vep_sift_raw)
+                          print vep_fields
+                        end
+                        vep_sift_score = vep_sift_raw.gsub(/[{()}]/, " ").split(" ")[1]
+                        vep_sift_pred_parts = vep_sift_raw.split("(")[0].split("_")
+                        if  vep_sift_score.to_f <= 0.05 
+                             score = score + 100
+                        end
+                        vep_sift_pred = vep_sift_pred_parts[0].upcase[0,1]
+                        if vep_sift_pred_parts.length > 1
+                            vep_sift_confidence = vep_sift_pred_parts[1].upcase[0,1] + "C"
+                            vep_sift_pred = vep_sift_pred + "-" + vep_sift_confidence
+                        end
+                  end 
+                  vep_polyphen_raw = vep_fields[vep_polyphen_index]
+                  if !vep_polyphen_raw.nil? && !vep_polyphen_raw.empty?
+                      score = score + 100
+                      vep_polyphen_score = vep_polyphen_raw.gsub(/[{()}]/, " ").split(" ")[1]
+                      vep_polyphen_pred_parts = vep_polyphen_raw.split("(")[0].split("_")
+                      if vep_polyphen_score.to_f >= 0.453
+                          score = score + 100
+                      end
+                      vep_polyphen_pred = vep_polyphen_pred_parts[0].upcase[0,1]
+                  end
+
+                  vep_canonical = vep_fields[vep_canonical_index]
+                  if !vep_canonical.empty?
+                      score = score + 10
+                  end
+
+                  vep_pick = vep_fields[vep_pick_index]
+                  if !vep_pick.empty?
+                      score = score+1
+                  end
+
+                  vep_protien_pos = vep_fields[vep_protien_pos_index]
+
+                  if score > pick_score
+                    pick_csq = transcript
+                    pick_score = score
+
+                    pick_vep_sift_score = vep_sift_score
+                    pick_vep_sift_pred = vep_sift_pred
+
+                    pick_vep_polyphen_score = vep_polyphen_score
+                    pick_vep_polyphen_pred = vep_polyphen_pred
+
+                  end
+
+                  feature_info = [vep_feature,vep_protien_pos,vep_sift_raw,vep_polyphen_raw,score].join("|")
+                  all_features.push(feature_info)
+                end
+                # Have final csq to use - log it. 
+                pick_csq.split("|", -1).each_with_index do |subfield, j|
+                  categ = vep_header[j]
+                  if ["Consequence", "IMPACT", "Feature", "HGVSc", "HGVSp", "EXON", "INTRON", "Protein_position", "CADD_RAW", "CADD_PHRED"].include?(categ)
+                      f.print(subfield + "\t")
+                  end
+                end
+                f.print(pick_vep_sift_score+"\t")
+                f.print(pick_vep_sift_pred+"\t")
+                f.print(pick_vep_polyphen_score+"\t")
+                f.print(pick_vep_polyphen_pred+"\t")
+                f.print(all_features.join(","))
+            
+              # Not a CSQ info field, so spit out chrom, pos, ref, alt if that is the index the logic is at
+              elsif [0, 1, 3, 4].include?(i)
+                  f.print(field + "\t")
+              end
+            # Finished with line field interations
+            end
+            f.print("\n")
+        rescue => error
+          p line
+          puts error.backtrace
+          raise
+          exit
         end
-      f.print("\n")
+        # Finished processing line
+        end
+      # Finish VEP popen
       end
+    # Finished output file open
     end
 
     #Annotate kafeen vcf with info from vep
     @@log.info("Compressing #{tmp_vep_output}...")
     `bgzip -f #{tmp_vep_output}`
-    @@log.info("Compressed VEP output written to #{tmp_vep_output}")
+    @@log.info("Compressed VEP output written to #{tmp_vep_output}.gz")
 
     @@log.info("Indexing #{tmp_vep_output}.gz...")
     `tabix -f -s1 -b2 -e2 #{tmp_vep_output}.gz`
@@ -891,42 +1070,53 @@ class Command
 
     @@log.info("Creating VEP VCF header file...")
     header = [
-      "##INFO=<ID=#{@vep_consequence_tag},Number=1,Type=String,Description=\"Predicted variant consequence.\">",
-      "##INFO=<ID=#{@vep_exon_tag},Number=1,Type=String,Description=\"Affected exon numbering. Format is Number\/Total.\">",
-      "##INFO=<ID=#{@vep_intron_tag},Number=1,Type=String,Description=\"Affected intron numbering. Format is Number\/Total.\">",
-      "##INFO=<ID=#{@vep_hgvs_c_tag},Number=1,Type=String,Description=\"HGVS coding sequence names based on Ensembl stable identifiers.\">",
-      "##INFO=<ID=#{@vep_hgvs_p_tag},Number=1,Type=String,Description=\"HGVS protein sequence names based on Ensembl stable identifiers.\">",
+      "##INFO=<ID=#{@vep_consequence_tag},Number=1,Type=String,Description=\"VEP variant consequence type.\">",
+      "##INFO=<ID=#{@vep_impact_tag},Number=1,Type=String,Description=\"VEP impact modifier for the consequence type.\">",
+      "##INFO=<ID=#{@vep_feature_tag},Number=1,Type=String,Description=\"VEP variant consequence type.\">",
+      "##INFO=<ID=#{@vep_exon_tag},Number=1,Type=String,Description=\"VEP exon numbering. Format is Number\/Total.\">",
+      "##INFO=<ID=#{@vep_intron_tag},Number=1,Type=String,Description=\"VEP intron numbering. Format is Number\/Total.\">",
+      "##INFO=<ID=#{@vep_hgvs_c_tag},Number=1,Type=String,Description=\"VEP HGVS coding sequence names based on Ensembl stable identifiers.\">",
+      "##INFO=<ID=#{@vep_hgvs_p_tag},Number=1,Type=String,Description=\"VEP HGVS protein sequence names based on Ensembl stable identifiers.\">",
+      "##INFO=<ID=#{@vep_protien_pos_tag},Number=1,Type=String,Description=\"VEP variant consequence type.\">",
+      "##INFO=<ID=#{@vep_cadd_phred_tag},Number=1,Type=String,Description=\"VEP annotated CADD phred scaled score.\">",
+      "##INFO=<ID=#{@vep_cadd_raw_tag},Number=1,Type=String,Description=\"VEP annotated CADD raw score.\">",
+      "##INFO=<ID=#{@vep_sift_score_tag},Number=1,Type=String,Description=\"VEP annotated SIFT score.\">",
+      "##INFO=<ID=#{@vep_sift_pred_tag},Number=1,Type=String,Description=\"VEP annotated SIFT prediction.\">",
+      "##INFO=<ID=#{@vep_polyphen_score_tag},Number=1,Type=String,Description=\"VEP annotated POLYPHEN score.\">",
+      "##INFO=<ID=#{@vep_polyphen_pred_tag},Number=1,Type=String,Description=\"VEP annotated POLYPHEN prediction.\">",
+      "##INFO=<ID=#{@vep_all_features_tag},Number=1,Type=String,Description=\"All VEP features, comma seperated list: Feature|ProtienPos|SIFT|PolyPhen|InternalDVDScore.\">",
     ].join("\n") + "\n"
 
     File.open(tmp_vep_header, 'w') { |f| f.write(header) }
     @@log.info("VEP VCF header file written to #{tmp_vep_header}.")
 
+    # ANN TODO: Need to add CADD scoring here
     `bcftools annotate \
        --annotations #{tmp_vep_output}.gz \
-       --columns CHROM,POS,REF,ALT,#{@vep_consequence_tag},#{@vep_exon_tag},#{@vep_intron_tag},#{@vep_hgvs_c_tag},#{@vep_hgvs_p_tag} \
+       --columns CHROM,POS,REF,ALT,#{@vep_consequence_tag},#{@vep_impact_tag},#{@vep_feature_tag},#{@vep_exon_tag},#{@vep_intron_tag},#{@vep_hgvs_c_tag},#{@vep_hgvs_p_tag},#{@vep_protien_pos_tag},#{@vep_cadd_phred_tag},#{@vep_cadd_raw_tag},#{@vep_sift_score_tag},#{@vep_sift_pred_tag},#{@vep_polyphen_score_tag},#{@vep_polyphen_pred_tag},#{@vep_all_features_tag} \
        --header-lines #{tmp_vep_header} \
        --output #{tmp_vep_output_vcf} \
        --output-type z \
        #{vcf_file}`
 
     # Rename tmp output to final output
-    File.rename(tmp_vep_output_vcf, @add_vep_result)
-    @@log.info("Output written to #{@add_vep_result}")
+    File.rename(tmp_vep_output_vcf, add_vep_result)
+    @@log.info("Output written to #{add_vep_result}")
 
     # Index output file
-    @@log.info("Indexing #{@add_vep_result}...")
+    @@log.info("Indexing #{add_vep_result}...")
     `bcftools index \
        --force \
        --tbi \
-       #{@add_vep_result}`
+       #{add_vep_result}`
     @@log.info("Done creating index file")
 
     # Remove tmp files
     @@log.info("Removing VEP tmp files...")
-    File.unlink("#{tmp_vep_output}.gz") if File.exist?("#{tmp_vep_output}.gz")
-    File.unlink("#{tmp_vep_output}.gz.tbi") if File.exist?("#{tmp_vep_output}.gz.tbi")
-    File.unlink(vep_error_log) if File.exist?(vep_error_log)
-    File.unlink(tmp_vep_header) if File.exist?(tmp_vep_header)
+    #File.unlink("#{tmp_vep_output}.gz") if File.exist?("#{tmp_vep_output}.gz")
+    #File.unlink("#{tmp_vep_output}.gz.tbi") if File.exist?("#{tmp_vep_output}.gz.tbi")
+    #File.unlink(vep_error_log) if File.exist?(vep_error_log)
+    #File.unlink(tmp_vep_header) if File.exist?(tmp_vep_header)
     @@log.info("Done removing VEP tmp files")
   end
 
