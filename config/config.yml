@@ -41,7 +41,7 @@ annotation_files:
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
-    include: true
+    include: false
     source: 'dbNSFP'
     filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.20160919.bcf.gz'
     fields:
