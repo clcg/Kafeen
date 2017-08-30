@@ -489,9 +489,8 @@ class Command
     @final_pred_tag = "FINAL_PRED"
     
     # Get all regions
-    
     @@log.info("Not subsetting dbNSFP for faster annotation...")
-    set_file = "#{out_file_prefix}.subset.tmp.bcf.gz"
+    set_file = "#{out_file_prefix}.dbNSFP_subset.tmp.bcf.gz"
     `bcftools view \
        --regions-file #{bed_file} \
        --output-type b \
@@ -510,7 +509,6 @@ class Command
     File.open(tmp_output_file, 'w') do |f|
     `bcftools annotate \
        --annotations #{set_file} \
-       --columns #{set_file['fields'].map { |f| "INFO/#{f}" }.join(',')} \
        --output-type v \
        #{vcf_file}`
     .each_line do |vcf_row|
