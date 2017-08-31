@@ -781,9 +781,17 @@ class Command
                       score = score + 100
                       vep_polyphen_score = vep_polyphen_raw.gsub(/[{()}]/, " ").split(" ")[1]
                       vep_polyphen_pred_parts = vep_polyphen_raw.split("(")[0].split("_")
-                      vep_polyphen_pred = vep_polyphen_pred_parts[0].upcase[0,1]
-                      if vep_polyphen_pred == "P"
+                      # 08/31/17 - BC:
+                      # Match VEP PolyPhen prediction on full VEP text
+                      # (probably_damaging, possibly_damaging, benign, unknown)
+                      if vep_polyphen_pred_parts[0] == "probably"
+                          vep_polyphen_pred = "D"
                           score = score + 100
+                      elsif vep_polyphen_pred_parts[0] == "possibly"
+                          vep_polyphen_pred = "P"
+                      else
+                          # Matches on benign and unknown
+                          vep_polyphen_pred = vep_polyphen_pred_parts[0].upcase[0,1]
                       end
                   end
 
