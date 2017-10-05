@@ -183,17 +183,21 @@ class Command
       next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
       files_to_merge << tmp_vcf['filename']
     end
-#    files_to_merge << tmp_vcfs['dbsnp']['filename']
 
-    # Merge VCFs...
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
-    @@log.info("Merging results...")
-    `bcftools merge \
-       --merge none \
-       --output-type z \
-       --output #{@regions2variants_result} \
-       #{files_to_merge.join(' ')}`
-    @@log.info("Done merging results")
+    if files_to_merge.length == 1
+      # Skip merging if only 1 VCF provided
+      FileUtils.mv(files_to_merge.join, @regions2variants_result)
+    else
+      # Merge VCFs if more than 1 provided
+      @@log.info("Merging results...")
+      `bcftools merge \
+         --merge none \
+         --output-type z \
+         --output #{@regions2variants_result} \
+         #{files_to_merge.join(' ')}`
+      @@log.info("Done merging results")
+    end
 
     # Create index
     @@log.info("Creating index file for #{@regions2variants_result}...")
