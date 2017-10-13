@@ -4,7 +4,7 @@ require_relative File.join('lib', 'boot.rb')
 require 'logger'
 require 'open3'
 
-cmd = Command.new(log_level: 'info', log_out: STDOUT)
+cmd = Command.new(log_level: 'info')
 log = Logger.new(STDOUT)
 
 # Validate config file
@@ -68,7 +68,6 @@ if !include_dbnsfp && false == include_dbnsfp
   # excluding dbnsfp
   
   log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation/prediction with dbNSFP annotator. This may take some time")
-#  cmd.add_predictions_result = "#{FILE_PREFIX}.vcf.gz";
   
   # Add HGVS notation (using ASAP and/or VEP, as specified in config)
     if ['asap', 'both'].include?(annotator)
@@ -124,7 +123,6 @@ else
                       
   # Add HGVS notation (using ASAP and/or VEP, as specified in config)
   if ['asap', 'both'].include?(annotator)
-  #  cmd.add_asap(vcf_file: cmd.add_predictions_result,
     cmd.add_asap(vcf_file: cmd.add_genes_result,
                  out_file_prefix: FILE_PREFIX,
                  asap_path: CONFIG['third_party']['asap']['path'],
@@ -133,7 +131,6 @@ else
                  fasta: CONFIG['third_party']['asap']['fasta'])
   end
   if ['vep', 'both'].include?(annotator)
-  #  cmd.add_vep(vcf_file: cmd.add_predictions_result,
     cmd.add_vep(vcf_file: cmd.add_genes_result,
                out_file_prefix: FILE_PREFIX,
                vep_path: CONFIG['third_party']['vep']['path'],

@@ -194,7 +194,6 @@ class Command
       next if key == 'dbnsfp' # DO NOT MERGE dbNSFP - ONLY ANNOTATE WITH IT
       files_to_merge << tmp_vcf['filename']
     end
-#    files_to_merge << tmp_vcfs['dbsnp']['filename']
 
     # Merge VCFs...
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
@@ -489,19 +488,7 @@ class Command
     @final_pred_tag = "FINAL_PRED"
     
 #    # Get all regions
-#    @@log.info("Not subsetting dbNSFP for faster annotation...")
     set_file = "#{out_file_prefix}.set.tmp.bcf.gz"
-#    `bcftools view \
-#       --regions-file #{bed_file} \
-#       --output-type b \
-#       --output-file #{set_file} \
-#       #{set_file['filename']}`
-#    @@log.info("Set written to #{set_file}")
-
-#    # Create index
-#    @@log.info("Creating index file for #{set_file}...")
-#    `bcftools index --force --csi #{set_file}`
-#    @@log.info("Done creating index file")
 
     # Add dbNSFP predictions
     tmp_output_file = "#{out_file_prefix}.tmp.vcf"
@@ -523,14 +510,6 @@ class Command
 
            
 #           # Add GERP++ prediction tag to meta-info
-#           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_GERP_RS' }
-#             f.puts "##INFO=<ID=#{@gerp_pred_tag},Number=.,Type=String,Description=\"NA\">"
-#           end
-#           # Add phyloP20way mammalian prediction tag to meta-info
-#           if dbnsfp_file['fields'].any?{ |e| e == 'GEN_PHYLOP20WAY_MAMMALIAN' }
-#             f.puts "##INFO=<ID=#{@phylop20way_mammalian_pred_tag},Number=.,Type=String,Description=\"NA\">"
-#           end
-           # Print header (i.e. "CHROM  POS  ID ...")
            f.puts vcf_row
          else
            vcf_cols = vcf_row.split("\t")
@@ -540,60 +519,6 @@ class Command
            output = {}
            output[:total_num_preds] = 0
            output[:num_path_preds] = 0
-#           set_file['fields'].select { |e| e.match(/(?:_PRED$|^GEN_GERP_RS$|^GEN_PHYLOP20WAY_MAMMALIAN$)/i) }.each do |field|
-#             # Get all predictions for this algorithm
-#             match = vcf_row.get_vcf_field(field)
-#
-#             # No data for this algorithm -- skip it
-#             next if match.empty?
-#
-#             # Get all predictions for this algorithm
-#             preds = match.split(/[^a-zA-Z0-9.-]+/)
-#
-#             # No data for this algorithm -- skip it
-#             next if preds.all? { |pred| pred == '.' || pred == 'U' }
-#               
-#             if field == 'SIFT_PRED'
-#               # SIFT prediction
-#               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Damaging"
-#               output[:total_num_preds] += 1
-#             elsif field == 'POLYPHEN2_HDIV_PRED'
-#               # Polyphen2 (HDIV) prediction
-#               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('P') # <-- "Deleterious" or "Possibly damaging"
-#               output[:total_num_preds] += 1
-#             elsif field == 'LRT_PRED'
-#               # LRT prediction
-#               output[:num_path_preds] += 1 if preds.include?('D') # <-- "Deleterious"
-#               output[:total_num_preds] += 1
-#             elsif field == 'MUTATIONTASTER_PRED'
-#               # MutationTaster prediction
-#               output[:num_path_preds] += 1 if preds.include?('D') || preds.include?('A') # <-- "Disease-causing" or "Disease-causing (automatic)"
-#               output[:total_num_preds] += 1
-#             elsif field == 'GERP_RS'
-#               # GERP++ prediction
-#               if preds.any? { |pred| pred.to_f > 0.0 }
-#                 # Conserved
-#                 output[:num_path_preds] += 1
-#                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=C"].join(";")
-#               else
-#                 # Non-conserved
-#                 vcf_cols[7] = [vcf_cols[7], "#{@gerp_pred_tag}=N"].join(";")
-#               end
-#               output[:total_num_preds] += 1
-#             elsif field == 'GEN_PHYLOP20WAY_MAMMALIAN'
-#               # phyloP20way mammalian prediction
-#               # TODO: The cutoff should be changed from 0.95 to 1.0
-#               if preds.any? { |pred| pred.to_f >= 0.95 }
-#                 # Conserved
-#                 output[:num_path_preds] += 1
-#                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=C"].join(";")
-#               else
-#                 # Non-conserved
-#                 vcf_cols[7] = [vcf_cols[7], "#{@phylop20way_mammalian_pred_tag}=N"].join(";")
-#               end
-#               output[:total_num_preds] += 1
-#             end
-#           end
 
            # Add final prediction
            if output[:total_num_preds] == 0
@@ -759,7 +684,6 @@ class Command
         fields = line.split("\t", -1)
 
         # Print: CHROM, POS, REF, ALT, ASAP_variant, HGVS_c, HGVS_p, locale, impact
-        #if !fields[5].include?("ERROR_")
         if !line.include?("ERROR_")
           f.puts [fields[1..4], fields[0], fields[6..7], fields[10], fields[12]].flatten.join("\t")
         else
@@ -1506,13 +1430,6 @@ class Command
     end
     
     # Re-header
-#    `bcftools reheader \
-#       --header #{tmp_header_file} \
-#       --output-type u \
-#       #{vcf_file} \
-#     | bcftools view \
-#         --output-type z \
-#         --output-file #{tmp_output_file}`
 
 puts "Beginning 'bcftools reheader' on #{vcf_file}..."
     `bcftools reheader \
