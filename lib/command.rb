@@ -1249,7 +1249,7 @@ class Command
             "#{@final_pathogenicity_reason_tag}=#{final[:reason]}",
             "#{@final_diseases_tag}=#{final[:diseases]}",
             "#{@clinvar_hgmd_conflict_tag}=#{final[:clinvar_hgmd_conflict]}",
-          ].join(";")
+          ].map { |e| e.force_encoding('UTF-8') }.join(";")
           
           # Print updated VCF row
           f.puts vcf_cols.join("\t")
