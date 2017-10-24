@@ -5,6 +5,7 @@
 require 'logger'
 require 'open3'
 require 'uri'
+require 'fileutils'
 require_relative 'core_extensions'
 
 # Monkey-patch the String class
