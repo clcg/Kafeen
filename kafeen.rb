@@ -82,27 +82,26 @@ end
 include_dbnsfp = CONFIG['annotation_files']['dbnsfp']['include']
 if include_dbnsfp == false
   # Exclude dbNSFP
-  log.info("Excluded dbNSFP explicitly in config.yml. Skipping annotation/prediction with dbNSFP annotator. This may take some time")
+  log.info("dbNSFP inclusion set to false in config... Skipping dbNSFP annotation")
 
-  # Annotate generic (no dbnsfp subset)
-  cmd.add_predictions_without_dbnsfp(vcf_file: cmd.add_genes_result,
-                      bed_file: merged_bed_file,
+  # Calculate prediction totals without adding dbNSFP
+  cmd.add_predictions(vcf_file: cmd.add_genes_result,
                       out_file_prefix: FILE_PREFIX,
                       clinical_labels: CONFIG['clinical_labels'])
 else
   # Include dbNSFP
   if include_dbnsfp == true
-    log.info("Prediction annotating with dbNSFP explicitly by a valid include tag")
+    log.info("dbNSFP inclusion set to true in config... Including dbNSFP annotation")
   elsif include_dbnsfp.nil?
-    log.warning("Prediction annotating with dbNSFP implicitly. dbNSFP did not have an include tag in config.yml")
+    log.warning("dbNSFP inclusion not specified in config... Including dbNSFP annotation by default")
   else
-    log.warning("Prediction annotating with dbNSFP implicitly... Incompatible include input within config.yml. Expected true or false, config.yml provided: (no value).\n\tPlease review the config.yml and indicated whether or not you would like to include dbNSFP (include: true) or not (include: false)")
+    log.warning("dbNSFP inclusion expected true / false in config, but got '#{include_dbnsfp}' instead... Including dbNSFP annotation by default")
   end   
 
-  # Annotate with dbNSFP
+  # Annotate with dbNSFP and calculate prediction totals
   cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
-                      vcf_file: cmd.add_genes_result,
                       bed_file: merged_bed_file,
+                      vcf_file: cmd.add_genes_result,
                       out_file_prefix: FILE_PREFIX,
                       clinical_labels: CONFIG['clinical_labels'])
 end
