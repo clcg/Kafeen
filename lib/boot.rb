@@ -11,7 +11,6 @@ require 'yaml'
 opts = Trollop::options do
   opt :config, "Configuration override file", :type => :string, :default => nil
   opt :output_prefix, "Prefix to use for output files", :type => :string, :default => nil
-  opt :test, "Use a pre-defined VCF and BED file to assert that Kafeen is still working okay", :default => false
 #  opt :debug, "Print debugging statements", :default => false
 end
 
@@ -51,13 +50,6 @@ if opts[:output_prefix].nil?
 else
   # Use user-specified prefix
   FILE_PREFIX = opts[:output_prefix]
-end
-
-# Determine if test mode is set
-if opts[:test]
-  TEST_MODE = true
-else
-  TEST_MODE = false
 end
 
 # Verify required utilities are in $PATH
