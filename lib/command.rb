@@ -5,7 +5,6 @@
 require 'logger'
 require 'open3'
 require 'uri'
-require 'fileutils'
 require_relative 'core_extensions'
 
 # Monkey-patch the String class
@@ -199,7 +198,7 @@ class Command
     @regions2variants_result = "#{out_file_prefix}.vcf.gz"
     if files_to_merge.length == 1
       # Skip merging if only 1 VCF provided
-      FileUtils.mv(files_to_merge.join, @regions2variants_result)
+      File.rename(files_to_merge.join, @regions2variants_result)
     else
       # Merge VCFs if more than 1 provided
       @@log.info("Merging results...")
@@ -322,7 +321,7 @@ class Command
            #{vcf_file}`
 
         # Change working VCF file to this file
-        FileUtils.mv(tmp_output_file, vcf_file)
+        File.rename(tmp_output_file, vcf_file)
 
         @@log.info("Removing tmp dbNSFP files...")
         File.unlink(dbnsfp_subset_file) if File.exist?(dbnsfp_subset_file)
