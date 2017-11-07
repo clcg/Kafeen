@@ -1333,49 +1333,48 @@ class Command
   end
 
   ##
-  # Cleanup header
+  # Cleanup Meta-info
   #
-  # NOTE: Do not use yet
+  # TODO: DOUBLE-CHECK THAT THIS IS WORKING (looks to be ok)
+  # Spruce up the meta-information (i.e. lines that start with ## at the
+  # top of the VCF) in the VCF. This will:
+  #   - Update fileformat to current VCF version
+  #   - Update the fileDate to the current date
+  #   - Keep all ##INFO and ##reference lines
+  #   - Filter out non-chromosomal contigs (i.e. not 1-22|X|Y|M/MT)
+  #   - Remove all other meta-info not necessary for final output
   ##
-  def cleanup_header(vcf_file:, out_file_prefix:)
-    @@log.info("Cleaning up VCF header...")
+  def cleanup_meta_info(vcf_file:, out_file_prefix:)
+    @@log.info("Cleaning up VCF meta-info...")
 
     tmp_header_file = "#{out_file_prefix}.header.tmp.txt"
     tmp_output_file = "#{out_file_prefix}.tmp.vcf.gz"
+    @cleanup_header_result = "#{out_file_prefix}.vcf.gz"
 
-    # Create header file
+    # Create new header file
     File.open(tmp_header_file, 'w') do |f|
+      # Print VCF version & current date
+      f.puts "##fileformat=VCFv4.3"
+      f.puts "##fileDate=#{Time.now.strftime("%Y%m%d")}"
+
+      # Remove unnecessary/inaccurate header lines
       `bcftools view \
          --header-only \
          #{vcf_file}`
       .each_line do |line|
         line.chomp!
-        if line.match(/^#(?:#fileformat|#INFO|CHROM)=/)
+        if line.match(/^#(?:#reference=|#INFO=|CHROM)/) ||
+               line.match(/^##contig=<ID=(?:chr)?(?:[XYM]|MT|[1-9]?|1[0-9]|2[0-2])>$/)
           f.puts line
         end
       end
-      f.puts ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'].join("\t")
     end
     
-    # Re-header
-
-puts "Beginning 'bcftools reheader' on #{vcf_file}..."
+    # Add new header to tmp file
     `bcftools reheader \
        --header #{tmp_header_file} \
        --output #{tmp_output_file} \
        #{vcf_file}`
-
-    # NOTE: This is causing issues right now
-puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
-    @cleanup_header_result = "#{out_file_prefix}.vcf.gz"
-    `bcftools view \
-       --output-type z \
-       --output-file #{@cleanup_header_result} \
-       #{tmp_output_file}`
-
-    # Move tmp file to output file
-    #File.rename(tmp_output_file, @cleanup_header_result)
-    @@log.info("Output written to #{@cleanup_header_result}")
 
     # Index output file
     @@log.info("Indexing #{@cleanup_header_result}...")
@@ -1385,10 +1384,13 @@ puts "Beginning 'bcftools view' conversion on #{tmp_output_file}..."
        #{@cleanup_header_result}`
     @@log.info("Done creating index file")
 
-#    # Remove tmp files
-#    @@log.info("Removing tmp files...")
-#    File.unlink(tmp_header_file) if File.exist?(tmp_header_file)
-#    File.unlink(tmp_output_file) if File.exist?(tmp_output_file)
-#    @@log.info("Done removing tmp files")
+    # Remove tmp files
+    @@log.info("Removing tmp files...")
+    File.unlink(tmp_header_file) if File.exist?(tmp_header_file)
+    @@log.info("Done removing tmp files")
+
+    # Move tmp file to be final output file
+    File.rename(tmp_output_file, @cleanup_header_result)
+    @@log.info("Output written to #{@cleanup_header_result}")
   end
 end
