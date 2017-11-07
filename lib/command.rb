@@ -1335,7 +1335,6 @@ class Command
   ##
   # Cleanup Meta-info
   #
-  # TODO: DOUBLE-CHECK THAT THIS IS WORKING (looks to be ok)
   # Spruce up the meta-information (i.e. lines that start with ## at the
   # top of the VCF) in the VCF. This will:
   #   - Update fileformat to current VCF version
