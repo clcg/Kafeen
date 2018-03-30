@@ -30,26 +30,26 @@ The latest release of Kafeen is available for download from this GitHub reposito
 Configuration of the Kafeen pipeline is open and flexible to the user's needs and decisions.
 These annotation sources and formatting methods were used in development of Kafeen and the Deafness Variation Database:
 #### 1000 Genomes
-Source: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/
-Formatting: utils/convert_1000gp3_vcfs
+- Source: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/
+- Formatting: utils/convert_1000gp3_vcfs
 #### ClinVar
-Source: https://github.com/macarthur-lab/clinvar/blob/master/output/b37/single/clinvar_alleles.single.b37.tsv.gz
-Formatting: utils/convert_macarthur_clinvar_tsv_to_vcf
+- Source: https://github.com/macarthur-lab/clinvar/blob/master/output/b37/single/clinvar_alleles.single.b37.tsv.gz
+- Formatting: utils/convert_macarthur_clinvar_tsv_to_vcf
 #### EVS ESP6500SI
-Source: http://evs.gs.washington.edu/EVS/#tabs-7
-Formatting: utils/get_esp6500si_ac_an_af_tags
+- Source: http://evs.gs.washington.edu/EVS/#tabs-7
+- Formatting: utils/get_esp6500si_ac_an_af_tags
 #### ExAC
-Source: ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3/
-Formatting: utils/get_exac_ac_an_af_tags
+- Source: ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3/
+- Formatting: utils/get_exac_ac_an_af_tags
 #### dbNSFP
-Source: https://sites.google.com/site/jpopgen/dbNSFP
-Formatting: utils/convert_dbnsfp_to_bcf
+- Source: https://sites.google.com/site/jpopgen/dbNSFP
+- Formatting: utils/convert_dbnsfp_to_bcf
 #### dbSNP
-Source: ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b146_GRCh37p13/VCF
-Formatting: utils/convert_dbsnp
+- Source: ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b146_GRCh37p13/VCF
+- Formatting: utils/convert_dbsnp
 #### HGMD
-Source: Genome Trax license required (https://www.qiagenbioinformatics.com/products/genome-trax/)
-Formatting: utils/hgmd2vcf
+- Source: Genome Trax license required (https://www.qiagenbioinformatics.com/products/genome-trax/)
+- Formatting: utils/hgmd2vcf
 
 ### Configuration
 The Kafeen pipeline configuration (config/config.yml) allows for easy inclusion and exclusion of annotation sources and fields.
@@ -64,10 +64,10 @@ To run the Kafeen pipeline, two files are required as input:
 - properly-configured YAML configuration file
 
 Running the Kafeen pipeline from the command line:
-ruby kafeen.rb -c <path_to_config> -o <output_prefix> <gene_list>
+- `ruby kafeen.rb -c <path_to_config> -o <output_prefix> <gene_list>`
 
 
-## Author
+## Authors
 
-Sean Ephraim
-Brad Crone
+- Sean Ephraim
+- Brad Crone
