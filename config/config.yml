@@ -18,7 +18,7 @@ clinical_labels:
 ##
 # Gene regions reference file
 ##
-gene_regions_ref_file: '/Shared/MORL/Reference/Annotation_Databases/DVD/references/hg19_gene_and_mitochondrial_regions.v5.bed'
+gene_regions_ref_file: '<PATH_TO_GENE_REGIONS_BED>'
 
 ##
 # VCF annotation data files
@@ -27,7 +27,7 @@ annotation_files:
   clinvar: 
     include: true
     source: 'ClinVar'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ClinVar_20160301.MORL.LA-norm.vcf.gz'
+    filename: '<PATH_TO_CLINVAR_VCF>' 
     fields:
       - 'CLINVAR_CLNSIG'      # Clinical significance
       - 'CLINVAR_DISEASE'     # Clinical disease name
@@ -38,12 +38,12 @@ annotation_files:
   dbsnp:
     include: true
     source: 'dbSNP'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_SNP_b146.LA-norm.dedup.vcf.gz'
+    filename: '<PATH_TO_DBSNP_VCF>'
     fields: !!null # Do not include any INFO fields (rsIDs only)
   dbnsfp:
     include: true
     source: 'dbNSFP'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_dbNSFP_v3.0.MORL.LA-norm.20160919.bcf.gz'
+    filename: '<PATH_TO_DBNSFP_BCF>'
     fields:
       - 'DBNSFP_SIFT_SCORE'
       - 'DBNSFP_SIFT_PRED'
@@ -58,7 +58,7 @@ annotation_files:
   evs:
     include: true
     source: 'ESP6500'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ESP6500SI_v2.MORL.LA-norm.snps.vcf.gz'
+    filename: '<PATH_TO_EVS_VCF>'
     fields:
       - 'EVS_EA_AC'  # European American alt allele counts
       - 'EVS_EA_AN'  # European American allele counts
@@ -72,7 +72,7 @@ annotation_files:
   exac:
     include: true
     source: 'ExAC'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_ExAC_r0.3.MORL.LA-norm.PASS_only.vcf.gz'
+    filename: '<PATH_TO_EXAC_VCF>'
     fields:
       - 'EXAC_AFR_AC' # African American alt allele counts
       - 'EXAC_AFR_AN' # African American ref allele count
@@ -101,7 +101,7 @@ annotation_files:
   hgmd:
     include: true
     source: 'HGMD'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_HGMD_2015r2_2014r3_merged.MORL.LA-norm.DVD_v8_regions.dedup.vcf.gz'
+    filename: '<PATH_TO_HGMD_VCF>'
     fields:
       - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
       - 'HGMD_DISEASE'     # Disease(s)
@@ -111,7 +111,7 @@ annotation_files:
   g1000:
     include: true
     source: '1KG'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_1000G_phase3v5a.MORL.LA-norm.DVD_v8_regions.dedup.20160715.vcf.gz'
+    filename: '<PATH_TO_1KG_VCF>'
     fields:
       - '1KG_AFR_AC' # African American alt allele counts
       - '1KG_AFR_AN' # African American ref allele count
@@ -134,12 +134,12 @@ annotation_files:
   morl:
     include: true
     source: 'MORL'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_DVD_ExpertCurations_201704221056.MORL.LA-norm.vcf.gz'
+    filename: '<PATH_TO_EXPERT_CURATION_VCF>'
     fields: '*' # Include all fields
   otoscope:
     include: true
     source: 'OtoSCOPE'
-    filename: '/Shared/MORL/Reference/Annotation_Databases/DVD/VCF/hg19_OtoSCOPE_Mar2012.snps.20170421_update.vcf.gz'
+    filename: '<PATH_TO_OTODB_VCF>'
     fields: '*' # Include all fields
 
 ##
@@ -163,15 +163,15 @@ third_party:
   # ASAP annotation tool
   annotator: 'both'  # Which annotator to use. Options are "asap", "vep", and "both".
   asap:
-    path: '/Shared/MORL/Tools/ASAP/ASAP-Illumina-1.18.dev.nolog.jar'
-    ref_flat: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refFlat.20130302.txt.gz'
-    ref_seq_ali: '/Shared/MORL/Reference/Annotation_Databases/ASAP/refSeqAli.20130302.txt.gz'
-    fasta: '/Shared/MORL/Reference/Annotation_Databases/ASAP/hg19_and_random_gatk.fa'
+    path: '<PATH_TO_ASAP_JAR>'
+    ref_flat: '<PATH_TO_ASAP_REF_FLAT>'
+    ref_seq_ali: '<PATH_TO_ASAP_REF_SEQ_ALI>'
+    fasta: '<PATH_TO_FASTA>'
   #VEP annotation tool
   vep:
-    path: '/Shared/MORL/Tools/ensembl-vep-release-88/vep' 
-    cache_path: '/Shared/MORL/Tools/ensembl-vep-release-88/cache-dir' 
-    config_path: '/Shared/MORL/Analysis/bcrone/kafeen/config/vep_config.ini'
+    path: '<PATH_TO_VEP>
+    cache_path: '<PATH_TO_VEP_CACHE>
+    config_path: '<KAFEEN_INSTALL>/config/vep_config.ini'
 ##
 # Test
 #
