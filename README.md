@@ -1,8 +1,7 @@
 # Kafeen
 
 ## Description
-
-Kafeen is a data collection pipeline used to aggregate and interpret variants and annotations from various resources.
+Kafeen is a comprehensive open-source pipeline for the collection, annotation and classification of Genetic Variants. Its output is configurable and is meant to be tailored to your own local database needs
 
 ## System Requirements
 ### Hardware Requirements
