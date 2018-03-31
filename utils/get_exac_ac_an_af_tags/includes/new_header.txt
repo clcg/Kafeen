@@ -1,0 +1,142 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">
+##FILTER=<ID=InbreedingCoeff_Filter,Description="InbreedingCoeff <= -0.2">
+##FILTER=<ID=AC_Adj0_Filter,Description="AC_Adj == 0">
+##FILTER=<ID=LowQual,Description="Low quality">
+##FILTER=<ID=NewCut_Filter,Description="VQSLOD > -2.632 && InbreedingCoeff >-0.8">
+##FILTER=<ID=VQSRTrancheINDEL95.00to96.00,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: 0.9503 <= x < 1.2168">
+##FILTER=<ID=VQSRTrancheINDEL96.00to97.00,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: 0.7622 <= x < 0.9503">
+##FILTER=<ID=VQSRTrancheINDEL97.00to99.00,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: 0.0426 <= x < 0.7622">
+##FILTER=<ID=VQSRTrancheINDEL99.00to99.50,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: -0.8363 <= x < 0.0426">
+##FILTER=<ID=VQSRTrancheINDEL99.50to99.90,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: -8.5421 <= x < -0.8363">
+##FILTER=<ID=VQSRTrancheINDEL99.90to99.95,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: -18.4482 <= x < -8.5421">
+##FILTER=<ID=VQSRTrancheINDEL99.95to100.00+,Description="Truth sensitivity tranche level for INDEL model at VQS Lod < -37254.4742">
+##FILTER=<ID=VQSRTrancheINDEL99.95to100.00,Description="Truth sensitivity tranche level for INDEL model at VQS Lod: -37254.4742 <= x < -18.4482">
+##FILTER=<ID=VQSRTrancheSNP99.60to99.80,Description="Truth sensitivity tranche level for SNP model at VQS Lod: -4.9627 <= x < -1.8251">
+##FILTER=<ID=VQSRTrancheSNP99.80to99.90,Description="Truth sensitivity tranche level for SNP model at VQS Lod: -31.4709 <= x < -4.9627">
+##FILTER=<ID=VQSRTrancheSNP99.90to99.95,Description="Truth sensitivity tranche level for SNP model at VQS Lod: -170.3725 <= x < -31.4709">
+##FILTER=<ID=VQSRTrancheSNP99.95to100.00+,Description="Truth sensitivity tranche level for SNP model at VQS Lod < -39645.8352">
+##FILTER=<ID=VQSRTrancheSNP99.95to100.00,Description="Truth sensitivity tranche level for SNP model at VQS Lod: -39645.8352 <= x < -170.3725">
+##GATKCommandLine=<ID=ApplyRecalibration,Version=3.1-163-g4284d7a,Date="Fri Jun 06 05:42:47 EDT 2014",Epoch=1402047767783,CommandLineOptions="analysis_type=ApplyRecalibration input_file=[] showFullBamList=false read_buffer_size=null phone_home=AWS gatk_key=null tag=NA read_filter=[] intervals=[/seq/dax/macarthur_joint_calling/v2/scattered/temp_0001_of_1000/scattered.intervals] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=true num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 logging_level=INFO log_to_file=null help=false version=false input=[(RodBinding name=input source=/seq/dax/macarthur_joint_calling/v2/scattered/temp_0001_of_1000/genotypes.unfiltered.vcf.gz)] recal_file=(RodBinding name=recal_file source=/seq/dax/macarthur_joint_calling/v2/macarthur_joint_calling.indels.recal) tranches_file=/seq/dax/macarthur_joint_calling/v2/macarthur_joint_calling.indels.tranches out=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub no_cmdline_in_header=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub sites_only=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub bcf=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub ts_filter_level=95.0 lodCutoff=null ignore_filter=null excludeFiltered=false mode=INDEL filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##GATKCommandLine=<ID=SelectVariants,Version=3.3-33-g58cfab1,Date="Fri Nov 21 21:05:54 EST 2014",Epoch=1416621954228,CommandLineOptions="analysis_type=SelectVariants input_file=[] showFullBamList=false read_buffer_size=null phone_home=AWS gatk_key=null tag=NA read_filter=[] intervals=null excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=false no_cmdline_in_header=false sites_only=false never_trim_vcf_format_field=false bcf=false bam_compression=null simplifyBAM=false disable_bam_indexing=false generate_md5=false num_threads=4 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 logging_level=INFO log_to_file=null help=false version=false variant=(RodBinding name=variant source=/humgen/gsa-firehose/ExAC_GATKV2.5/MacArthur_HC/v2/fullset/ExAC_HC.chrX.00.vcf.gz) discordance=(RodBinding name= source=UNBOUND) concordance=(RodBinding name= source=UNBOUND) out=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub sample_name=[] sample_expressions=null sample_file=[exac_panel.samples] exclude_sample_name=[] exclude_sample_file=[] select_expressions=[] excludeNonVariants=true excludeFiltered=false preserveAlleles=false restrictAllelesTo=ALL keepOriginalAC=false mendelianViolation=false mendelianViolationQualThreshold=0.0 select_random_fraction=0.0 remove_fraction_genotypes=0.0 selectTypeToInclude=[] keepIDs=null fullyDecode=false forceGenotypesDecode=false justRead=false maxIndelSize=2147483647 ALLOW_NONOVERLAPPING_COMMAND_LINE_SAMPLES=false filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##GATKCommandLine=<ID=VariantAnnotator,Version=3.2-2-gec30cee,Date="Mon Nov 24 21:39:16 EST 2014",Epoch=1416883156611,CommandLineOptions="analysis_type=VariantAnnotator input_file=[] showFullBamList=false read_buffer_size=null phone_home=AWS gatk_key=null tag=NA read_filter=[] intervals=[X:1-7763528] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=250 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=false num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 logging_level=INFO log_to_file=null help=false version=false variant=(RodBinding name=variant source=../filtered/ExAC_HC.chrX.00.filtered.vcf.gz) snpEffFile=(RodBinding name= source=UNBOUND) dbsnp=(RodBinding name= source=UNBOUND) comp=[] resource=[] out=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub no_cmdline_in_header=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub sites_only=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub bcf=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub annotation=[SexAlleleCounts] excludeAnnotation=[] group=[] expression={} useAllAnnotations=false list=false alwaysAppendDbsnpId=false MendelViolationGenotypeQualityThreshold=0.0 sampleMappingFile=samples_pop_sex.tsv filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##GATKCommandLine=<ID=VariantFiltration,Version=3.2-2-gec30cee,Date="Sun Nov 23 08:50:16 EST 2014",Epoch=1416750616237,CommandLineOptions="analysis_type=VariantFiltration input_file=[] showFullBamList=false read_buffer_size=null phone_home=AWS gatk_key=null tag=NA read_filter=[] intervals=[X:1-7763528] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=false num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 logging_level=INFO log_to_file=null help=false version=false variant=(RodBinding name=variant source=../fullset/ExAC_HC.chrX.00.vcf.gz) mask=(RodBinding name= source=UNBOUND) out=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub no_cmdline_in_header=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub sites_only=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub bcf=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub filterExpression=[VQSLOD > -2.632 && InbreedingCoeff >-0.8, InbreedingCoeff <= -0.8] filterName=[NewCut_Filter, InbreedingCoeff_Filter] genotypeFilterExpression=[] genotypeFilterName=[] clusterSize=3 clusterWindowSize=0 maskExtension=0 maskName=Mask filterNotInMask=false missingValuesInExpressionsShouldEvaluateAsFailing=false invalidatePreviousFilters=false filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##GVCFBlock=minGQ=0(inclusive),maxGQ=5(exclusive)
+##INFO=<ID=EXAC_ALL_AC,Number=A,Type=Integer,Description="Adjusted total number of alternate alleles in called genotypes (referred to as AC_Adj in the original VCF)">
+##INFO=<ID=EXAC_ALL_AN,Number=1,Type=Integer,Description="Adjusted total number of alleles in called genotypes (referred to as AN_Adj in the original VCF)">
+##INFO=<ID=EXAC_ALL_AF,Number=A,Type=Float,Description="Adjusted allele frequency in the all populations calculated from AC_Adj and AN_Adj, in the range (0,1) (referred to as AF_Adj in the original VCF)">
+##INFO=<ID=EXAC_AFR_AC,Number=A,Type=Integer,Description="African/African American alternate allele counts">
+##INFO=<ID=EXAC_AFR_AN,Number=1,Type=Integer,Description="African/African American allele counts">
+##INFO=<ID=EXAC_AFR_AF,Number=A,Type=Float,Description="Allele frequency in the African/African American populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_AMR_AC,Number=A,Type=Integer,Description="American alternate allele counts">
+##INFO=<ID=EXAC_AMR_AN,Number=1,Type=Integer,Description="American allele counts">
+##INFO=<ID=EXAC_AMR_AF,Number=A,Type=Float,Description="Allele frequency in the American populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_EAS_AC,Number=A,Type=Integer,Description="East Asian alternate allele counts">
+##INFO=<ID=EXAC_EAS_AN,Number=1,Type=Integer,Description="East Asian allele counts">
+##INFO=<ID=EXAC_EAS_AF,Number=A,Type=Float,Description="Allele frequency in the East Asian populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_FIN_AC,Number=A,Type=Integer,Description="Finnish alternate allele counts">
+##INFO=<ID=EXAC_FIN_AN,Number=1,Type=Integer,Description="Finnish allele counts">
+##INFO=<ID=EXAC_FIN_AF,Number=A,Type=Float,Description="Allele frequency in the Finnish populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_NFE_AC,Number=A,Type=Integer,Description="Non-Finnish European alternate allele counts">
+##INFO=<ID=EXAC_NFE_AN,Number=1,Type=Integer,Description="Non-Finnish European allele counts">
+##INFO=<ID=EXAC_NFE_AF,Number=A,Type=Float,Description="Allele frequency in the Non-Finnish populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_OTH_AC,Number=A,Type=Integer,Description="Other alternate allele counts">
+##INFO=<ID=EXAC_OTH_AN,Number=1,Type=Integer,Description="Other allele counts">
+##INFO=<ID=EXAC_OTH_AF,Number=A,Type=Float,Description="Allele frequency in the Other populations calculated from AC and AN, in the range (0,1)">
+##INFO=<ID=EXAC_SAS_AC,Number=A,Type=Integer,Description="South Asian alternate allele counts">
+##INFO=<ID=EXAC_SAS_AN,Number=1,Type=Integer,Description="South Asian allele counts">
+##INFO=<ID=EXAC_SAS_AF,Number=A,Type=Float,Description="Allele frequency in the South Asian populations calculated from AC and AN, in the range (0,1)">
+##contig=<ID=1,length=249250621>
+##contig=<ID=2,length=243199373>
+##contig=<ID=3,length=198022430>
+##contig=<ID=4,length=191154276>
+##contig=<ID=5,length=180915260>
+##contig=<ID=6,length=171115067>
+##contig=<ID=7,length=159138663>
+##contig=<ID=8,length=146364022>
+##contig=<ID=9,length=141213431>
+##contig=<ID=10,length=135534747>
+##contig=<ID=11,length=135006516>
+##contig=<ID=12,length=133851895>
+##contig=<ID=13,length=115169878>
+##contig=<ID=14,length=107349540>
+##contig=<ID=15,length=102531392>
+##contig=<ID=16,length=90354753>
+##contig=<ID=17,length=81195210>
+##contig=<ID=18,length=78077248>
+##contig=<ID=19,length=59128983>
+##contig=<ID=20,length=63025520>
+##contig=<ID=21,length=48129895>
+##contig=<ID=22,length=51304566>
+##contig=<ID=X,length=155270560>
+##contig=<ID=Y,length=59373566>
+##contig=<ID=MT,length=16569>
+##contig=<ID=GL000207.1,length=4262>
+##contig=<ID=GL000226.1,length=15008>
+##contig=<ID=GL000229.1,length=19913>
+##contig=<ID=GL000231.1,length=27386>
+##contig=<ID=GL000210.1,length=27682>
+##contig=<ID=GL000239.1,length=33824>
+##contig=<ID=GL000235.1,length=34474>
+##contig=<ID=GL000201.1,length=36148>
+##contig=<ID=GL000247.1,length=36422>
+##contig=<ID=GL000245.1,length=36651>
+##contig=<ID=GL000197.1,length=37175>
+##contig=<ID=GL000203.1,length=37498>
+##contig=<ID=GL000246.1,length=38154>
+##contig=<ID=GL000249.1,length=38502>
+##contig=<ID=GL000196.1,length=38914>
+##contig=<ID=GL000248.1,length=39786>
+##contig=<ID=GL000244.1,length=39929>
+##contig=<ID=GL000238.1,length=39939>
+##contig=<ID=GL000202.1,length=40103>
+##contig=<ID=GL000234.1,length=40531>
+##contig=<ID=GL000232.1,length=40652>
+##contig=<ID=GL000206.1,length=41001>
+##contig=<ID=GL000240.1,length=41933>
+##contig=<ID=GL000236.1,length=41934>
+##contig=<ID=GL000241.1,length=42152>
+##contig=<ID=GL000243.1,length=43341>
+##contig=<ID=GL000242.1,length=43523>
+##contig=<ID=GL000230.1,length=43691>
+##contig=<ID=GL000237.1,length=45867>
+##contig=<ID=GL000233.1,length=45941>
+##contig=<ID=GL000204.1,length=81310>
+##contig=<ID=GL000198.1,length=90085>
+##contig=<ID=GL000208.1,length=92689>
+##contig=<ID=GL000191.1,length=106433>
+##contig=<ID=GL000227.1,length=128374>
+##contig=<ID=GL000228.1,length=129120>
+##contig=<ID=GL000214.1,length=137718>
+##contig=<ID=GL000221.1,length=155397>
+##contig=<ID=GL000209.1,length=159169>
+##contig=<ID=GL000218.1,length=161147>
+##contig=<ID=GL000220.1,length=161802>
+##contig=<ID=GL000213.1,length=164239>
+##contig=<ID=GL000211.1,length=166566>
+##contig=<ID=GL000199.1,length=169874>
+##contig=<ID=GL000217.1,length=172149>
+##contig=<ID=GL000216.1,length=172294>
+##contig=<ID=GL000215.1,length=172545>
+##contig=<ID=GL000205.1,length=174588>
+##contig=<ID=GL000219.1,length=179198>
+##contig=<ID=GL000224.1,length=179693>
+##contig=<ID=GL000223.1,length=180455>
+##contig=<ID=GL000195.1,length=182896>
+##contig=<ID=GL000212.1,length=186858>
+##contig=<ID=GL000222.1,length=186861>
+##contig=<ID=GL000200.1,length=187035>
+##contig=<ID=GL000193.1,length=189789>
+##contig=<ID=GL000194.1,length=191469>
+##contig=<ID=GL000225.1,length=211173>
+##contig=<ID=GL000192.1,length=547496>
+##contig=<ID=NC_007605,length=171823>
+##reference=file:///seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta
+##source=SelectVariants
+##VEP=v77 cache=/humgen/atgu1/fs03/konradk/vep/tin//homo_sapiens/77_GRCh37 db=.
+##LoF_info=Info used for LoF annotation
+##LoF_flags=Possible warning flags for LoF
+##LoF_filter=Reason for LoF not being HC
+##LoF=Loss-of-function annotation (HC = High Confidence; LC = Low Confidence)
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
