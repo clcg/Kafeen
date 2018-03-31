@@ -1,0 +1,12 @@
+mut	Tells you which allele, REF or ALT, is the one to which the annotations (e.g. pathogenic assertion) refer	CLNALLELE
+measureset_id	Variation ID; unique identifier for the set of sequence changes that were interpreted; access online at ncbi.nlm.nih.gov/clinvar/variation/{VID}	VID
+symbol	HGNC gene symbol	HGNC
+clinical_significance	Clinical significance	CLNSIG
+review_status	Clinical review status	REVSTAT
+hgvs_c	HGVS cDNA name	HGVS_C
+hgvs_p	HGVS protein name	HGVS_P
+all_submitters	All clinical review submitters	SUBMITTERS
+all_traits	Variant disease name(s)	DISEASE
+all_pmids	PubMed IDs	PMID
+pathogenic	Has this variant been asserted 'Pathogenic' or 'Likely pathogenic' by any submitter for any phenotype? 1 - Yes, 0 - No	PATHOGENIC
+conflicted	Has this variant ever been asserted 'Pathogenic' or 'Likely pathogenic' by any submitter for any phenotype and also been asserted 'Benign' or 'Likely benign' by any submitter for any phenotype? 1 - Yes, 0 - No; Note that having one assertion of pathogenic and one of uncertain significance does not count as conflicted for this column	CONFLICTED
