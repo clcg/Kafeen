@@ -278,7 +278,7 @@ class Command
   # Add predictions from dbNSFP, and tally up prediction totals from dbNSFP & VEP.
   # Omitting dbNSFP from input will tally up totals from VEP only.
   ##
-  def add_predictions(vcf_file:, out_file_prefix:, clinical_labels:, dbnsfp_file: nil, bed_file: nil)
+  def add_predictions(annotator:, vcf_file:, out_file_prefix:, clinical_labels:, dbnsfp_file: nil, bed_file: nil)
     # Set custom VCF tags to be added to output
     @dbnsfp_gerp_pred_tag = "DBNSFP_GERP_PRED"
     @dbnsfp_phylop20way_mammalian_pred_tag = "DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED"
@@ -389,7 +389,7 @@ class Command
                  if !vep_sift_pred.empty?
                     preds = vep_sift_pred.split(/[^a-zA-Z0-9.-]+/)
                  end
-               elsif field == 'DBNSFP_SIFT_PRED' and ['vep','both'].include?(annotator)
+               elsif field == 'DBNSFP_POLYPHEN2_HDIV_PRED' and ['vep','both'].include?(annotator)
                  vep_poly_pred = vcf_row.get_vcf_field(@vep_polyphen_pred_tag)
                  if !vep_poly_pred.empty?
                     preds = vep_poly_pred.split(/[^a-zA-Z0-9.-]+/)
