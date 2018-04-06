@@ -58,7 +58,8 @@ if include_dbnsfp == false
   log.info("dbNSFP inclusion set to false in config... Skipping dbNSFP annotation")
 
   # Calculate prediction totals without adding dbNSFP
-  cmd.add_predictions(vcf_file: cmd.add_genes_result,
+  cmd.add_predictions(annotator: annotator,
+                      vcf_file: cmd.add_genes_result,
                       out_file_prefix: FILE_PREFIX,
                       clinical_labels: CONFIG['clinical_labels'])
 else
@@ -72,7 +73,8 @@ else
   end   
 
   # Annotate with dbNSFP and calculate prediction totals
-  cmd.add_predictions(dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
+  cmd.add_predictions(annotator: annotator,
+                      dbnsfp_file: CONFIG['annotation_files']['dbnsfp'],
                       bed_file: merged_bed_file,
                       vcf_file: cmd.add_genes_result,
                       out_file_prefix: FILE_PREFIX,

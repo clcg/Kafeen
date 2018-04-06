@@ -384,12 +384,12 @@ class Command
                # Get all predictions for this algorithm
                preds = match.split(/[^a-zA-Z0-9.-]+/)
   
-               if field == 'DBNSFP_SIFT_PRED' 
+               if field == 'DBNSFP_SIFT_PRED' and ['vep','both'].include?(annotator)
                  vep_sift_pred = vcf_row.get_vcf_field(@vep_sift_pred_tag)
                  if !vep_sift_pred.empty?
                     preds = vep_sift_pred.split(/[^a-zA-Z0-9.-]+/)
                  end
-               else field == 'DBNSFP_SIFT_PRED'
+               elsif field == 'DBNSFP_SIFT_PRED' and ['vep','both'].include?(annotator)
                  vep_poly_pred = vcf_row.get_vcf_field(@vep_polyphen_pred_tag)
                  if !vep_poly_pred.empty?
                     preds = vep_poly_pred.split(/[^a-zA-Z0-9.-]+/)
