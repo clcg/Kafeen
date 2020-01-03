@@ -4,7 +4,6 @@
 *.vcf.gz
 *.backup
 *.error_log
-!otoscope_v6_genes.txt
-!DVD-MORL-ExpertCurations*
-!hg19_gene_and_mitochondrial_regions.txt
-lazygit.sh
+.project
+config/*
+!config/templates
