@@ -1,0 +1,395 @@
+---
+##
+# Configurations
+##
+
+##
+# Output Intermediary Files
+#
+# Indicate if you would like an additional file written at the end of 
+# each function reflecting the procedures of that function. These files 
+# are not critical to the running of Kafeen. Instead, these files 
+# would provide the user with insight into the iterations of 
+# modifications kafeen makes to various files.
+# 
+# Enabling this option is primarily intended for unit testing and 
+# validation.
+#
+# true to write out the additional files, false otherwise.
+##
+intmed_output: false
+
+##
+# MAF Threshold Cut Off
+# 
+# Specify a Minore Allele Frequency threhold/cutoff values. If a variant's 
+# MAF is greater than this threshold it will be considered benign. If a 
+# published data source such as HGMD or CLINVAR suggests pathogenic, 
+# but the variant's MAF is above this threshold, the variant can at most be
+# benign*.
+##
+maf_thresh: 0.005 #.5%
+
+##
+# Clinical labels
+##
+clinical_labels:
+  unknown: 'Unknown significance'
+  pathogenic: 'Pathogenic'
+  likely_pathogenic: 'Likely pathogenic'
+  pred_pathogenic: 'Unknown significance'
+  benign: 'Benign'
+  likely_benign: 'Likely benign'
+  pred_benign: 'Likely benign'
+
+##
+# Gene regions reference file
+##
+gene_regions_ref_file: '/path/to/GRCh37_gene_regions_bed_file.bed'
+
+##
+# VCF annotation data files
+##
+annotation_files:
+  clinvar:
+    include: true 
+    source: 'ClinVar'
+    filename: '/path/to/GRCh37_clinvar.LA-norm.vcf.gz'
+    field_prefix: 'CLINVAR'
+    fields:
+      - 'CLINVAR_CLNSIG'      # Clinical significance
+      - 'CLINVAR_DISEASE'     # Clinical disease name
+      - 'CLINVAR_REVSTAT'     # Clinical review status
+      - 'CLINVAR_PMID'        # PubMed IDs
+      - 'CLINVAR_PATHOGENIC'  # At least 1 pathogenic call? (0 or 1)
+      - 'CLINVAR_CONFLICTED'  # Any conflicting calls? (0 or 1)
+  dbsnp:
+    include: true
+    source: 'dbSNP'
+    filename: '/path/to/GRCh37_dbSNP.LA-norm.singleton_var_entries.vcf.gz'
+    field_prefix: 'DBSNP'
+    fields: !!null # Do not include any INFO fields (rsIDs only)
+  dbnsfp:
+    include: true
+    source: 'dbNSFP'
+    filename: '/path/to/GRCh37_dbNSFP.LA-norm.bcf.gz'
+    field_prefix: 'DBNSFP'
+    fields:
+      - 'DBNSFP_SIFT_SCORE'
+      - 'DBNSFP_SIFT_PRED'
+      - 'DBNSFP_POLYPHEN2_HDIV_SCORE'
+      - 'DBNSFP_POLYPHEN2_HDIV_PRED'
+      - 'DBNSFP_LRT_SCORE'
+      - 'DBNSFP_LRT_PRED'
+      - 'DBNSFP_MUTATIONTASTER_SCORE'
+      - 'DBNSFP_MUTATIONTASTER_PRED'
+      - 'DBNSFP_GERP_RS'
+      - 'DBNSFP_PHYLOP20WAY_MAMMALIAN'
+      - 'DBNSFP_INTERPRO_DOMAIN'
+  evs:
+    include: true
+    source: 'ESP6500'
+    filename: '/path/to/GRCh37_ESP6500SI_v2.LA-norm.snps.vcf.gz'
+    field_prefix: 'EVS'
+    fields:
+      - 'EVS_EA_AC'  # European American alt allele counts
+      - 'EVS_EA_AN'  # European American allele counts
+      - 'EVS_EA_AF'  # European American allele frequency
+      - 'EVS_AA_AC'  # African American alt allele counts
+      - 'EVS_AA_AN'  # African American allele counts
+      - 'EVS_AA_AF'  # African American allele frequency
+      - 'EVS_ALL_AC' # Total alt allele counts
+      - 'EVS_ALL_AN' # Total allele counts
+      - 'EVS_ALL_AF' # Total allele frequency
+  exac:
+    include: true
+    source: 'ExAC'
+    filename: '/path/to/GRCh37_ExAC.LA-norm.vcf.gz'
+    field_prefix: 'EXAC'
+    fields:
+      - 'EXAC_AFR_AC' # African American alt allele counts
+      - 'EXAC_AFR_AN' # African American ref allele count
+      - 'EXAC_AFR_AF' # African American allele frequency
+      - 'EXAC_AMR_AC' # American alt allele counts
+      - 'EXAC_AMR_AN' # American ref allele count
+      - 'EXAC_AMR_AF' # American allele frequency
+      - 'EXAC_EAS_AC' # East Asian alt allele counts
+      - 'EXAC_EAS_AN' # East Asian ref allele count
+      - 'EXAC_EAS_AF' # East Asian allele frequency
+      - 'EXAC_FIN_AC' # European (Finnish) alt allele counts
+      - 'EXAC_FIN_AN' # European (Finnish) ref allele count
+      - 'EXAC_FIN_AF' # European (Finnish) allele frequency
+      - 'EXAC_NFE_AC' # European (Non-Finnish) alt allele counts
+      - 'EXAC_NFE_AN' # European (Non-Finnish) ref allele count
+      - 'EXAC_NFE_AF' # European (Non-Finnish) allele frequency
+      - 'EXAC_OTH_AC' # Other alt allele counts
+      - 'EXAC_OTH_AN' # Other ref allele count
+      - 'EXAC_OTH_AF' # Other allele frequency
+      - 'EXAC_SAS_AC' # South Asian alt allele counts
+      - 'EXAC_SAS_AN' # South Asian ref allele count
+      - 'EXAC_SAS_AF' # South Asian allele frequency
+      - 'EXAC_ALL_AC' # Total alt allele counts
+      - 'EXAC_ALL_AN' # Total allele counts
+      - 'EXAC_ALL_AF' # Total allele frequency
+  hgmd:
+    include: true
+    source: 'HGMD'
+    filename: '/path/to/GRCh37_hgmd.LA-norm.singleton_variant_entries.vcf.gz'
+    field_prefix: 'HGMD'
+    fields:
+      - 'HGMD_VARIANTTYPE' # Type of variant (DM - disease-causing)
+      - 'HGMD_DISEASE'     # Disease(s)
+      - 'HGMD_CONFIDENCE'  # Pathogenicity confidence
+      - 'HGMD_PMID'        # PubMed ID(s)
+      - 'HGMD_OMIM_REF'    # OMIM phenotype ID(s)
+  g1000:
+    include: true
+    source: '1KG'
+    filename: '/path/to/GRCh37_1000G_phase3v5a.singleton_variant_entries.vcf.gz'
+    field_prefix: '1KG'
+    fields:
+      - '1KG_AFR_AC' # African American alt allele counts
+      - '1KG_AFR_AN' # African American ref allele count
+      - '1KG_AFR_AF' # African American allele frequency
+      - '1KG_AMR_AC' # American alt allele counts
+      - '1KG_AMR_AN' # American ref allele count
+      - '1KG_AMR_AF' # American allele frequency
+      - '1KG_EAS_AC' # East Asian alt allele counts
+      - '1KG_EAS_AN' # East Asian ref allele count
+      - '1KG_EAS_AF' # East Asian allele frequency
+      - '1KG_EUR_AC' # European alt allele counts
+      - '1KG_EUR_AN' # European ref allele count
+      - '1KG_EUR_AF' # European allele frequency
+      - '1KG_SAS_AC' # South Asian alt allele counts
+      - '1KG_SAS_AN' # South Asian ref allele count
+      - '1KG_SAS_AF' # South Asian allele frequency
+      - '1KG_ALL_AC' # Total alt allele counts
+      - '1KG_ALL_AN' # Total allele count
+      - '1KG_ALL_AF' # Total allele frequency
+  morl:
+    include: true
+    source: 'MORL'
+    filename: '/path/to/GRCh37_custom_source.LA-norm.vcf.gz'
+    field_prefix: 'MORL'
+    fields: '*' # Include all fields
+     source: 'GNOMAD'
+     filename: '/path/to/GRCh37_gnomad_source.vcf.gz'
+     field_prefix: 'GNOMAD'
+     fields:
+       - 'GNOMAD_AFR_AC'
+       - 'GNOMAD_AFR_AN'
+       - 'GNOMAD_AFR_AF'
+       - 'GNOMAD_AMR_AC'
+       - 'GNOMAD_AMR_AN'
+       - 'GNOMAD_AMR_AF'
+       - 'GNOMAD_ASJ_AC'
+       - 'GNOMAD_ASJ_AN'
+       - 'GNOMAD_ASJ_AF'
+       - 'GNOMAD_EAS_AC'
+       - 'GNOMAD_EAS_AN'
+       - 'GNOMAD_EAS_AF'
+       - 'GNOMAD_FIN_AC'
+       - 'GNOMAD_FIN_AN'
+       - 'GNOMAD_FIN_AF'
+       - 'GNOMAD_NFE_AC'
+       - 'GNOMAD_NFE_AN'
+       - 'GNOMAD_NFE_AF'
+       - 'GNOMAD_OTH_AC'
+       - 'GNOMAD_OTH_AN'
+       - 'GNOMAD_OTH_AF'
+       - 'GNOMAD_SAS_AC'
+       - 'GNOMAD_SAS_AN'
+       - 'GNOMAD_SAS_AF'  
+  
+
+##
+# Enable 'Benign*' (i.e. 'benign star')  pathogenicity label
+#
+# An asterisk (*) can be added to a benign label when the
+# following two criteria are met:
+# 1.) The variant is benign because it has a MAF that is greater
+#     than or equal to the maximum allowed MAF.
+# 2.) The variant is currently reported as pathogenic in ClinVar,
+#     HGMD, or both.
+##
+enable_benign_star: true
+
+##
+# Third party dependencies
+#
+# Supply the full path to third party dependencies.
+##
+third_party:
+  # ASAP annotation tool
+  annotator: 'vep'  # Which annotator to use. Options are "asap", "vep", and "both".
+  vep:
+    field_prefix: 'VEP'
+    path: '/path/to/vep'
+    cache_path: '/path/to/vep/cache-dir'
+    config_path: '/path/to/vep_config.v3.90.template.ini'
+    tags:
+       vep_consequence:
+          csq_head: 'Consequence'
+          vcf_tag: 'VEP_CONSEQUENCE'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP variant consequence type.\"'
+       vep_exon:
+          csq_head: 'EXON'
+          vcf_tag: 'VEP_EXON'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP exon numbering. Format is Number\/Total.\"'
+       vep_intron:
+          csq_head: 'INTRON'
+          vcf_tag: 'VEP_INTRON'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP intron numbering. Format is Number\/Total.\"'
+       vep_hgvs_c:
+          csq_head: 'HGVSc'
+          vcf_tag: 'VEP_HGVS_C'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP HGVS coding sequence names based on Ensembl stable identifiers.\"'
+       vep_hgvs_p:
+          csq_head: 'HGVSp'
+          vcf_tag: 'VEP_HGVS_P'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP HGVS protein sequence names based on Ensembl stable identifiers.\"'
+       vep_sift_score:
+          csq_head: 'SIFT'
+          vcf_tag: 'VEP_SIFT_SCORE'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP annotated SIFT score.\"'
+       vep_sift_pred:
+          csq_head: null
+          vcf_tag: 'VEP_SIFT_PRED'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP annotated SIFT prediction.\"'
+       vep_polyphen_score:
+          csq_head: 'PolyPhen'
+          vcf_tag: 'VEP_POLYPHEN_SCORE'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP annotated POLYPHEN score.\"'
+       vep_polyphen_pred:
+          csq_head: null
+          vcf_tag: 'VEP_POLYPHEN_PRED'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP annotated POLYPHEN prediction.\"'
+       vep_canonical:
+          csq_head: 'CANONICAL'
+          vcf_tag: 'VEP_CANONICAL'
+          vcf_number: 0
+          vcf_type: 'String' #'Flag'
+          vcf_description: '\"Flag (true) indicating if the transcript is the canonical transcript for the gene.\"'
+       vep_pick:
+          csq_head: 'PICK'
+          vcf_tag: 'VEP_PICK'
+          vcf_number: 0
+          vcf_type: 'String' #'Flag'
+          vcf_description: '\"VEP picks one line or block of consequence data per variant, including transcript-specific columns based on https://useast.ensembl.org/info/docs/tools/vep/script/vep_other.html#pick. (--flag_pick) This flag is true if this is was the consequence data VEP picked.\"'
+       vep_impact:
+          csq_head: 'IMPACT'
+          vcf_tag: 'VEP_IMPACT'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP impact modifier for the consequence type.\"'
+       vep_feature:
+          csq_head: 'Feature'
+          vcf_tag: 'VEP_FEATURE'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"VEP variant consequence type.\"'
+       vep_protein_pos:
+          csq_head: 'Protein_position'
+          vcf_tag: 'VEP_PROTEIN_POS'
+          vcf_number: 1
+          vcf_type: 'String' #'Integer'
+          vcf_description: '\"VEP variant consequence type.\"'
+       vep_cadd_raw:
+          csq_head: 'CADD_RAW'
+          vcf_tag: 'VEP_CADD_RAW'
+          vcf_number: 1
+          vcf_type: 'String' #'Float'
+          vcf_description: '\"VEP annotated CADD raw score.\"'
+       vep_cadd_phred:
+          csq_head: 'CADD_PHRED'
+          vcf_tag: 'VEP_CADD_PHRED'
+          vcf_number: 1
+          vcf_type: 'String' #'Float'
+          vcf_description: '\"VEP annotated CADD phred scaled score.\"'
+       vep_all_features:
+          csq_head: null
+          vcf_tag: 'VEP_OTHER_FEATURES'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"All VEP features, comma seperated list: Feature|ProteinPos|SIFT|PolyPhen|InternalDVDScore.\"'
+       vep_motif_name:
+          csq_head: 'MOTIF_NAME'
+          vcf_tag: 'VEP_MOTIF_NAME'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"Overlapping regulatory regions motif name.\"'
+       vep_motif_pos:
+          csq_head: 'MOTIF_POS'
+          vcf_tag: 'VEP_MOTIF_POS'
+          vcf_number: 1
+          vcf_type: 'String' #'Integer'
+          vcf_description: '\"Overlapping regulatory regions motif position.\"'
+       vep_high_inf_pos:
+          csq_head: 'HIGH_INF_POS'
+          vcf_tag: 'VEP_HIGH_INF_POS'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"Overlapping regulatory region is a high information position within a transcription factor binding site. Indicates whether the SNP changes a base which is vital to the motif function or not.\"'
+       vep_motif_score_change:
+          csq_head: 'MOTIF_SCORE_CHANGE'
+          vcf_tag: 'VEP_MOTIF_SCORE_CHANGE'
+          vcf_number: 1
+          vcf_type: 'String' #'Float'
+          vcf_description: '\"Overlapping regulatory regions motif score change indicating how strong a binding site it is for the transcription factor. Between 0 (worst) and 1 (best), indicates whether the score increases or decreases and by how much as a result of the SNP.\"'
+       vep_domains:
+          csq_head: 'DOMAINS'
+          vcf_tag: 'VEP_DOMAINS'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"Adds names of overlapping protein domains to output.\"'
+       vep_gene_pheno:
+          csq_head: 'GENE_PHENO'
+          vcf_tag: 'VEP_GENE_PHENO'
+          vcf_number: 1
+          vcf_type: 'String'
+          vcf_description: '\"Indicates if the overlapped gene is associated with a phenotype, disease or trait. For a list of phenotyp sources see: https://useast.ensembl.org/info/genome/variation/phenotype/sources_phenotype_documentation.html\"'
+       
+
+##
+# Test
+#
+# Various configurations for testing
+#
+# Assertion tags
+# - Define which INFO tags to do assertion testing on
+# - For every tag in this list, a corresponding assert tag (e.g. 'ASSERT_GENE')
+#   should be present in the input VCF
+# - Assert tags in the input VCF should include the expected value
+##
+test:
+  assertion_tags:
+    - 'GENE'
+    - 'DBNSFP_GERP_PRED'
+    - 'DBNSFP_PHYLOP20WAY_MAMMALIAN_PRED'
+    - 'NUM_PATH_PREDS'
+    - 'TOTAL_NUM_PREDS'
+    - 'FINAL_PRED'
+    - 'FINAL_PATHOGENICITY'
+    - 'FINAL_DISEASE'
+    - 'FINAL_PATHOGENICITY_SOURCE'
+    - 'FINAL_PMID'
+    - 'FINAL_PATHOGENICITY_REASON'
+    - 'FINAL_COMMENTS'

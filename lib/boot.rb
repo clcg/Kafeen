@@ -34,13 +34,37 @@ else
 end
 
 # Load configuration file
-default_config = YAML.load_file(File.join('config', 'config.yml'))
+#default_config = YAML.load_file(File.join('config', 'config.yml'))
 if opts[:config].nil?
   # Use default
+  default_config = YAML.load_file(File.join('config', 'config.yml'))
   CONFIG = default_config
 else
   # Use config override
-  CONFIG = default_config.merge(YAML.load_file(opts[:config]))
+  CONFIG = YAML.load_file(opts[:config])
+  # CONFIG = default_config.merge(YAML.load_file(opts[:config]))
+end
+
+#validate CONFIG for mandatory vep options
+reqd_tags = [
+  "vep_feature",
+  "vep_impact",
+  "vep_hgvs_c",
+  "vep_hgvs_p",
+  "vep_sift_score",
+  "vep_sift_pred",
+  "vep_polyphen_score",
+  "vep_polyphen_pred",
+  "vep_canonical",
+  "vep_pick",
+  "vep_protein_pos",
+  "vep_all_features"
+  ]
+reqd_tags.each do |tag|
+  unless CONFIG['third_party']['vep']['tags'].key? tag
+    STDERR.puts "ERROR: required tag: #{tag}, is not in #{opts[:config]}['third_party']['vep_tags']."
+    boot_fail = true
+  end
 end
 
 # Set output file prefix
