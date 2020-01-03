@@ -70,3 +70,4 @@ Running the Kafeen pipeline from the command line:
 
 - Sean Ephraim
 - Brad Crone
+- Robert Marini
